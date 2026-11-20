@@ -1,7 +1,5 @@
 # Operations Management course site
 
-Interactive course resources for Operations Management, M.Com (GB&SCO), by Ashir Mansuri.
-
 **Live site:** https://ashir-mansuri.github.io/ops-management-course/
 
 ## What's here
