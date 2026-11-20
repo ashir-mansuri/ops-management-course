@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quality Tools Lab | Operations Management</title>
+<meta name="description" content="Make control charts, Pareto charts and fishbone diagrams from your own data. Unit 3: Quality Management and Improvement.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F3F7F6;
+    --sheet:#FFFFFF;
+    --line:#C9D6D2;
+    --ink:#1B2A4A;
+    --pencil:#56637A;
+    --red:#C62828;
+    --green:#1E7B4F;
+    --soft:#AFC0D3;
+    --focus:#1F5FD1;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    font-size:17px;line-height:1.5;font-variant-numeric:tabular-nums;
+  }
+  a{color:var(--ink)}
+  :focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+  .wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+
+  header{padding:22px 0 18px}
+  .crumb{font-size:.95rem;color:var(--pencil);text-decoration:none}
+  .crumb:hover{text-decoration:underline}
+  h1{
+    font-stretch:125%;font-weight:800;letter-spacing:-.01em;
+    font-size:clamp(2.1rem,5.2vw,3.6rem);line-height:1.02;margin:10px 0 10px;
+  }
+  .lede{max-width:62ch;margin:0;color:var(--pencil);font-size:1.05rem}
+
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:22px;position:relative;z-index:1}
+  .tab{
+    appearance:none;border:1px solid var(--line);border-bottom:none;background:transparent;
+    color:var(--pencil);font:inherit;font-weight:600;font-size:1rem;
+    padding:11px 18px 12px;border-radius:8px 8px 0 0;cursor:pointer;
+  }
+  .tab:hover{color:var(--ink);background:#E8EFED}
+  .tab[aria-selected="true"]{
+    background:var(--sheet);color:var(--ink);border-color:var(--ink);
+    border-width:2px 2px 0;margin-bottom:-2px;padding-bottom:14px;
+  }
+
+  .panel{
+    background:var(--sheet);border:2px solid var(--ink);border-radius:0 8px 8px 8px;
+    padding:26px;display:grid;grid-template-columns:minmax(270px,350px) minmax(0,1fr);gap:30px;
+  }
+  [hidden]{display:none !important}
+
+  .inputs h2,.output h2,.fb-top h2{font-stretch:112%;font-weight:700;font-size:1.2rem;margin:0 0 4px}
+  label{display:block;font-weight:600;font-size:.95rem;margin:16px 0 6px}
+  .hint{color:var(--pencil);font-size:.88rem;margin:6px 0 0}
+  textarea,input[type=text],input[type=number],select{
+    width:100%;font:inherit;font-size:15px;color:var(--ink);background:#FAFCFB;
+    border:1px solid var(--line);border-radius:6px;padding:9px 11px;
+  }
+  textarea{min-height:250px;line-height:1.55;resize:vertical;font-variant-numeric:tabular-nums}
+  .fb-cat textarea{min-height:92px}
+  select{appearance:auto}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+  .btn{
+    font:inherit;font-weight:600;font-size:.95rem;cursor:pointer;
+    padding:9px 15px;border-radius:6px;border:2px solid var(--ink);
+    background:var(--ink);color:#fff;
+  }
+  .btn.quiet{background:transparent;color:var(--ink)}
+  .btn:hover{filter:brightness(1.15)}
+  .btn.quiet:hover{background:#EEF3F1;filter:none}
+
+  .error{
+    border-left:4px solid var(--red);background:#FCEDED;color:#7F1515;
+    padding:10px 12px;border-radius:0 6px 6px 0;margin-top:14px;font-size:.95rem;
+  }
+  .error:empty{display:none}
+
+  .verdict{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin:6px 0 14px;min-height:56px}
+  .stamp{
+    display:inline-block;transform:rotate(-6deg);
+    border:5px double currentColor;border-radius:5px;padding:4px 14px 5px;
+    font-stretch:125%;font-weight:800;font-size:1.35rem;line-height:1.2;white-space:nowrap;
+    color:var(--green);
+  }
+  .stamp.bad{color:var(--red)}
+  .stamp.thunk{animation:thunk .28s cubic-bezier(.2,1.4,.4,1) both}
+  @keyframes thunk{from{transform:rotate(-6deg) scale(1.7);opacity:0}to{transform:rotate(-6deg) scale(1);opacity:1}}
+  @media (prefers-reduced-motion:reduce){.stamp.thunk{animation:none}}
+  .verdict p{margin:0;flex:1;min-width:220px;font-size:1.02rem}
+  .summary{font-size:1.08rem;margin:4px 0 14px;max-width:70ch}
+
+  .chart{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#fff}
+  .chart svg{display:block;width:100%;height:auto}
+  .chart.stale{opacity:.45}
+  .chart-actions{display:flex;justify-content:flex-end;margin-top:10px}
+
+  .findings{margin:14px 0 0;padding-left:1.2em}
+  .findings li{margin:4px 0}
+
+  details{margin-top:16px;border:1px solid var(--line);border-radius:6px;padding:0 14px}
+  summary{cursor:pointer;font-weight:600;padding:11px 0}
+  details[open] summary{border-bottom:1px solid var(--line);margin-bottom:10px}
+  .calc{margin:0 0 12px;padding:0;list-style:none}
+  .calc li{padding:3px 0}
+  .ov{text-decoration:overline}
+  .ov2{text-decoration:overline;text-decoration-style:double}
+  table{border-collapse:collapse;width:100%;font-size:.95rem;margin:0 0 12px}
+  th,td{text-align:right;padding:6px 8px;border-bottom:1px solid #E3EAE8}
+  th:first-child,td:first-child{text-align:left}
+  th{font-weight:600;color:var(--pencil)}
+  tr.vital td{font-weight:700}
+  .tag{display:inline-block;font-size:.78rem;font-weight:700;color:#fff;background:var(--ink);border-radius:3px;padding:1px 6px;margin-left:6px;vertical-align:1px}
+
+  .notes{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:22px}
+  .notes h3{font-stretch:112%;font-size:1.02rem;margin:0 0 6px}
+  .notes p,.notes ul{margin:0 0 8px;font-size:.97rem}
+  .notes ul{padding-left:1.15em}
+  .class-idea{border-left:3px solid var(--ink);padding-left:16px}
+
+  .panel.wide{display:block}
+  .fb-top{display:grid;grid-template-columns:minmax(0,2fr) minmax(200px,1fr) auto;gap:16px;align-items:end;margin-bottom:18px}
+  .fb-top label{margin-top:0}
+  .fb-top .row{margin-top:0}
+  .fb-heading{font-stretch:112%;font-weight:700;font-size:1.2rem;margin:26px 0 0}
+  .fb-cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 22px}
+  .fb-cat{border-top:1px solid #E3EAE8;padding-top:2px;margin-top:10px}
+  .fb-cat input{font-weight:600}
+
+  footer{color:var(--pencil);font-size:.9rem;padding:26px 0 40px}
+  footer p{margin:4px 0}
+
+  @media (max-width:920px){
+    .panel{grid-template-columns:minmax(0,1fr);padding:18px}
+    .inputs,.output{min-width:0}
+    .notes{grid-template-columns:1fr}
+    textarea{min-height:180px}
+    .fb-top{grid-template-columns:1fr}
+    .fb-cats{grid-template-columns:1fr 1fr}
+  }
+  @media (max-width:700px){
+    .chart{overflow-x:auto}
+    .chart svg{min-width:640px}
+    .chart.scroll svg{min-width:820px}
+    .chart::after{content:"Scroll sideways to see the whole chart.";display:block;font-size:.82rem;color:var(--pencil);padding:6px 10px;position:sticky;left:0}
+    .fb-cats{grid-template-columns:1fr}
+  }
+  @media (max-width:520px){
+    .wrap{padding:0 14px}
+    .tab{padding:9px 11px 10px;font-size:.92rem}
+    .tab[aria-selected="true"]{padding-bottom:12px}
+    .tab .long{display:none}
+    .stamp{font-size:1.1rem}
+  }
+  @media print{
+    .tabs,.inputs,.chart-actions,.notes,header .crumb,.fb-top,.fb-cats,.fb-heading,.hint{display:none}
+    .panel{border:none;display:block;padding:0}
+    body{background:#fff}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="crumb" href="index.html">Operations Management course home</a>
+    <h1>Quality Tools Lab</h1>
+    <p class="lede">Unit 3: Quality Management and Improvement. Type or paste your own data, including straight from Excel, and the chart redraws as you go.</p>
+    <div class="tabs" role="tablist" aria-label="Quality tools">
+      <button class="tab" role="tab" id="tab-control" aria-controls="panel-control" aria-selected="true" data-tab="control">Control chart</button>
+      <button class="tab" role="tab" id="tab-pareto" aria-controls="panel-pareto" aria-selected="false" tabindex="-1" data-tab="pareto">Pareto chart</button>
+      <button class="tab" role="tab" id="tab-fishbone" aria-controls="panel-fishbone" aria-selected="false" tabindex="-1" data-tab="fishbone">Fishbone<span class="long"> diagram</span></button>
+    </div>
+  </header>
+
+  <!-- CONTROL CHART -->
+  <section class="panel" id="panel-control" role="tabpanel" aria-labelledby="tab-control">
+    <div class="inputs">
+      <h2>Your data</h2>
+      <label for="cc-type">Chart type</label>
+      <select id="cc-type">
+        <option value="xr">X-bar and R chart (measurements)</option>
+        <option value="p">p-chart (count of defectives)</option>
+      </select>
+
+      <div id="cc-xr-inputs">
+        <label for="cc-xr-data">Measurements</label>
+        <textarea id="cc-xr-data" spellcheck="false" aria-describedby="cc-xr-hint"></textarea>
+        <p class="hint" id="cc-xr-hint">One sample per line. Separate values with spaces, commas or tabs. Every sample needs the same number of values (2 to 10).</p>
+      </div>
+
+      <div id="cc-p-inputs" hidden>
+        <label for="cc-p-n">Items checked in each sample</label>
+        <input id="cc-p-n" type="number" min="1" step="1" inputmode="numeric">
+        <label for="cc-p-data">Defectives found in each sample</label>
+        <textarea id="cc-p-data" spellcheck="false" aria-describedby="cc-p-hint"></textarea>
+        <p class="hint" id="cc-p-hint">One number per line, or separated by spaces.</p>
+      </div>
+
+      <div class="row">
+        <button class="btn quiet" type="button" id="cc-example">Load example</button>
+        <button class="btn quiet" type="button" id="cc-clear">Clear</button>
+      </div>
+      <div class="error" id="cc-error" role="alert"></div>
+    </div>
+
+    <div class="output">
+      <div class="verdict" aria-live="polite">
+        <span class="stamp" id="cc-stamp">In control</span>
+        <p id="cc-verdict-text"></p>
+      </div>
+      <div class="chart" id="cc-chart"></div>
+      <div class="chart-actions"><button class="btn" type="button" id="cc-download">Download chart as PNG</button></div>
+      <ul class="findings" id="cc-findings"></ul>
+      <details>
+        <summary>How the limits were worked out</summary>
+        <ul class="calc" id="cc-calc"></ul>
+      </details>
+      <details>
+        <summary>Values for each sample</summary>
+        <div id="cc-table"></div>
+      </details>
+      <div class="notes">
+        <div>
+          <h3>How to read this</h3>
+          <p>Each dot is one sample. The solid line is the process average and the red dashed lines are the control limits, three standard deviations either side.</p>
+          <p>A dot outside the limits, or 7 dots in a row on one side of the average, means something unusual (a special cause) has affected the process. Dots moving around inside the limits are normal common-cause variation, so don't react to each one.</p>
+        </div>
+        <div class="class-idea">
+          <h3>Try this in class</h3>
+          <ul>
+            <li>Change one value in sample 8 to 210 and watch both charts.</li>
+            <li>Ask the class: if the process is in control, does every packet meet the customer's specification? Control limits come from the process; specification limits come from the customer.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PARETO -->
+  <section class="panel" id="panel-pareto" role="tabpanel" aria-labelledby="tab-pareto" hidden>
+    <div class="inputs">
+      <h2>Your data</h2>
+      <label for="pa-title">What are you counting?</label>
+      <input id="pa-title" type="text">
+      <label for="pa-data">Causes and counts</label>
+      <textarea id="pa-data" spellcheck="false" aria-describedby="pa-hint"></textarea>
+      <p class="hint" id="pa-hint">One cause per line: the name, a comma (or tab), then the count.</p>
+      <div class="row">
+        <button class="btn quiet" type="button" id="pa-example">Load example</button>
+        <button class="btn quiet" type="button" id="pa-clear">Clear</button>
+      </div>
+      <div class="error" id="pa-error" role="alert"></div>
+    </div>
+
+    <div class="output">
+      <p class="summary" id="pa-summary" aria-live="polite"></p>
+      <div class="chart" id="pa-chart"></div>
+      <div class="chart-actions"><button class="btn" type="button" id="pa-download">Download chart as PNG</button></div>
+      <details open>
+        <summary>Table of causes</summary>
+        <div id="pa-table"></div>
+      </details>
+      <div class="notes">
+        <div>
+          <h3>How to read this</h3>
+          <p>Bars show how often each cause happens, largest first. The red line is the running total as a percentage of everything counted.</p>
+          <p>The causes up to where the line passes 80% are the vital few. Juran's point: fixing these few gives most of the improvement, so start there instead of spreading effort across the trivial many.</p>
+        </div>
+        <div class="class-idea">
+          <h3>Try this in class</h3>
+          <ul>
+            <li>Ask everyone what slows down their canteen order. Tally the answers on the board, type them in and read the chart together.</li>
+            <li>Then ask: is the most frequent cause always the most costly? A rare cause can still matter most.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FISHBONE -->
+  <section class="panel wide" id="panel-fishbone" role="tabpanel" aria-labelledby="tab-fishbone" hidden>
+    <div class="fb-top">
+      <div class="fb-problem">
+        <label for="fb-problem">Problem (the effect)</label>
+        <input id="fb-problem" type="text">
+      </div>
+      <div class="fb-template">
+        <label for="fb-template">Cause categories</label>
+        <select id="fb-template">
+          <option value="service">Restaurant or service</option>
+          <option value="mfg">Manufacturing (6M)</option>
+        </select>
+      </div>
+      <div class="row fb-buttons">
+        <button class="btn quiet" type="button" id="fb-example">Load example</button>
+        <button class="btn quiet" type="button" id="fb-clear">Clear</button>
+      </div>
+    </div>
+
+    <p class="summary" id="fb-summary" aria-live="polite"></p>
+    <div class="chart scroll" id="fb-chart"></div>
+    <div class="chart-actions"><button class="btn" type="button" id="fb-download">Download diagram as PNG</button></div>
+
+    <h2 class="fb-heading">Causes for each bone</h2>
+    <p class="hint">One cause per line. Start a line with * to mark a likely root cause; it turns red. The boxes are laid out like the diagram: top bones first, then bottom bones.</p>
+    <div class="fb-cats" id="fb-cats"></div>
+
+    <div class="notes">
+      <div>
+        <h3>How to read this</h3>
+        <p>The head of the fish is the problem. Each bone is a group of possible causes. For every cause, keep asking "why?" until you reach something the team can act on.</p>
+        <p>This is the Plan step of PDCA: understand the causes before choosing a fix.</p>
+      </div>
+      <div class="class-idea">
+        <h3>Try this in class</h3>
+        <ul>
+          <li>Split the class into six groups, one per bone. Give each group five minutes, then fill in the diagram together.</li>
+          <li>Ask each group to mark one root cause with * and defend it.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Nothing you type here is saved or sent anywhere. It stays on your screen until you close the page.</p>
+    <p>Made by Ashir Mansuri for Operations Management, M.Com (GB&amp;SCO).</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+var NS = "http://www.w3.org/2000/svg";
+var C = {ink:"#1B2A4A", pencil:"#56637A", red:"#C62828", green:"#1E7B4F", soft:"#AFC0D3", grid:"#E2ECE8", gridBig:"#CFDDD8"};
+function $(id){ return document.getElementById(id); }
+function el(tag, attrs, parent){
+  var e = document.createElementNS(NS, tag);
+  if (attrs) for (var k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function txt(parent, x, y, s, attrs){
+  var a = attrs || {}; a.x = x; a.y = y;
+  var t = el("text", a, parent); t.textContent = s; return t;
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+function debounce(fn, ms){ var t; return function(){ clearTimeout(t); t = setTimeout(fn, ms); }; }
+function round(v, d){ var p = Math.pow(10, d); return Math.round(v * p) / p; }
+function fmt(v, d){ return round(v, d).toFixed(d); }
+
+var SVG_STYLE =
+  "text{font-family:Archivo,Arial,Helvetica,sans-serif;fill:" + C.ink + "}" +
+  ".t{font-size:17px;font-weight:700}" +
+  ".ax{font-size:13.5px;fill:" + C.pencil + "}" +
+  ".lim{font-size:13.5px;font-weight:700;fill:" + C.red + "}" +
+  ".cl{font-size:13.5px;font-weight:700}" +
+  ".small{font-size:13.5px}" +
+  ".cat{font-size:15.5px;font-weight:700;fill:#fff}" + ".cause{font-size:15px}" +
+  ".head{font-size:17px;font-weight:700;fill:#fff}" +
+  ".root{fill:" + C.red + ";font-weight:700}";
+
+function newSvg(container, w, h, label){
+  container.innerHTML = "";
+  var svg = el("svg", {viewBox:"0 0 " + w + " " + h, role:"img", "aria-label":label, xmlns:NS}, container);
+  var st = el("style", null, svg); st.textContent = SVG_STYLE;
+  var defs = el("defs", null, svg);
+  var id = container.id;
+  var p1 = el("pattern", {id:id + "-g1", width:20, height:20, patternUnits:"userSpaceOnUse"}, defs);
+  el("path", {d:"M20 0H0V20", fill:"none", stroke:C.grid, "stroke-width":1}, p1);
+  var p2 = el("pattern", {id:id + "-g2", width:100, height:100, patternUnits:"userSpaceOnUse"}, defs);
+  el("path", {d:"M100 0H0V100", fill:"none", stroke:C.gridBig, "stroke-width":1}, p2);
+  el("rect", {width:w, height:h, fill:"#fff"}, svg);
+  el("rect", {width:w, height:h, fill:"url(#" + id + "-g1)"}, svg);
+  el("rect", {width:w, height:h, fill:"url(#" + id + "-g2)"}, svg);
+  return svg;
+}
+
+function niceNum(range, roundIt){
+  var exp = Math.floor(Math.log10(range)), f = range / Math.pow(10, exp), nf;
+  if (roundIt) nf = f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10;
+  else nf = f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10;
+  return nf * Math.pow(10, exp);
+}
+function niceTicks(lo, hi, n){
+  if (hi === lo) { hi = lo + 1; }
+  var step = niceNum(niceNum(hi - lo, false) / (n - 1), true);
+  var start = Math.ceil(lo / step) * step, out = [];
+  for (var v = start; v <= hi + step * 1e-9; v += step) out.push(round(v, 10));
+  return out;
+}
+function decimalsOf(step){ return Math.max(0, Math.min(4, -Math.floor(Math.log10(step) + 1e-9))); }
+
+function wrap(s, max, maxLines){
+  var words = String(s).split(/\s+/).filter(Boolean), lines = [], cur = "";
+  words.forEach(function(w){
+    if (!cur) cur = w;
+    else if ((cur + " " + w).length <= max) cur += " " + w;
+    else { lines.push(cur); cur = w; }
+  });
+  if (cur) lines.push(cur);
+  lines = lines.map(function(l){ return l.length > max ? l.slice(0, max - 1) + "…" : l; });
+  if (lines.length > maxLines) {
+    lines = lines.slice(0, maxLines);
+    var last = lines[maxLines - 1];
+    lines[maxLines - 1] = (last.length > max - 1 ? last.slice(0, max - 1) : last) + "…";
+  }
+  return lines;
+}
+
+function downloadSvg(container, filename){
+  var svg = container.querySelector("svg"); if (!svg) return;
+  var vb = svg.viewBox.baseVal, scale = 2;
+  var clone = svg.cloneNode(true);
+  clone.setAttribute("width", vb.width * scale);
+  clone.setAttribute("height", vb.height * scale);
+  var data = new XMLSerializer().serializeToString(clone);
+  var url = URL.createObjectURL(new Blob([data], {type:"image/svg+xml;charset=utf-8"}));
+  var img = new Image();
+  img.onload = function(){
+    var c = document.createElement("canvas");
+    c.width = vb.width * scale; c.height = vb.height * scale;
+    var ctx = c.getContext("2d");
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    URL.revokeObjectURL(url);
+    c.toBlob(function(b){
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(b); a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+    }, "image/png");
+  };
+  img.src = url;
+}
+
+/* ---------------- Tabs ---------------- */
+var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+function showTab(name, focus){
+  tabs.forEach(function(t){
+    var on = t.dataset.tab === name;
+    t.setAttribute("aria-selected", on ? "true" : "false");
+    t.tabIndex = on ? 0 : -1;
+    $("panel-" + t.dataset.tab).hidden = !on;
+    if (on && focus) t.focus();
+  });
+  if (history.replaceState) history.replaceState(null, "", "#" + name);
+}
+tabs.forEach(function(t, i){
+  t.addEventListener("click", function(){ showTab(t.dataset.tab); });
+  t.addEventListener("keydown", function(e){
+    var j = null;
+    if (e.key === "ArrowRight") j = (i + 1) % tabs.length;
+    if (e.key === "ArrowLeft") j = (i - 1 + tabs.length) % tabs.length;
+    if (e.key === "Home") j = 0;
+    if (e.key === "End") j = tabs.length - 1;
+    if (j !== null) { e.preventDefault(); showTab(tabs[j].dataset.tab, true); }
+  });
+});
+var startTab = (location.hash || "").replace("#", "");
+if (["control", "pareto", "fishbone"].indexOf(startTab) > -1) showTab(startTab);
+window.addEventListener("hashchange", function(){
+  var h = (location.hash || "").replace("#", "");
+  if (["control", "pareto", "fishbone"].indexOf(h) > -1) showTab(h);
+});
+
+/* ---------------- Control chart ---------------- */
+// n: [A2, D3, D4]
+var K = {2:[1.880,0,3.267],3:[1.023,0,2.574],4:[0.729,0,2.282],5:[0.577,0,2.114],6:[0.483,0,2.004],
+         7:[0.419,0.076,1.924],8:[0.373,0.136,1.864],9:[0.337,0.184,1.816],10:[0.308,0.223,1.777]};
+
+var XR_EXAMPLE = [
+"199.6 200.7 199.7 199.6 198.7","199.7 201.6 200.6 201.5 200.3","200.6 200.3 197.7 201.2 200.7",
+"200.7 197.6 197.6 198.8 199.3","200.4 199.9 200.7 199.1 200.4","200.6 199.1 202.4 200.8 201.7",
+"199.1 199.0 199.5 199.9 200.9","200.3 199.4 198.7 199.3 201.7","198.9 200.3 200.6 197.9 200.1",
+"201.8 197.2 199.5 199.9 198.9","200.7 199.9 197.9 201.2 200.9","201.3 202.0 200.5 200.2 198.2",
+"200.9 199.1 199.4 198.2 198.6","199.3 201.8 197.2 198.0 200.3","205.2 204.0 200.5 199.7 203.7",
+"199.0 198.4 201.4 201.5 200.2","200.3 200.6 202.2 200.9 200.7","200.8 197.8 201.8 201.3 200.7",
+"197.2 199.1 201.2 197.5 199.7","201.4 198.2 202.3 200.8 199.8"].join("\n");
+var P_EXAMPLE_N = 100;
+var P_EXAMPLE = "4\n6\n3\n5\n7\n4\n5\n3\n6\n14\n5\n4\n6\n5\n3\n4\n7\n5\n4\n6";
+
+function parseNumbers(line){
+  return line.trim().split(/[\s,;]+/).filter(Boolean);
+}
+function maxDecimals(rows){
+  var d = 0;
+  rows.forEach(function(r){ r.forEach(function(s){ var m = String(s).split(".")[1]; if (m) d = Math.max(d, m.length); }); });
+  return Math.min(d, 3);
+}
+
+function findRuns(v, cl, len){
+  var out = [], s = 0;
+  function side(x){ return x > cl ? 1 : x < cl ? -1 : 0; }
+  for (var i = 1; i <= v.length; i++){
+    var same = i < v.length && side(v[i]) !== 0 && side(v[i]) === side(v[s]);
+    if (!same){ if (side(v[s]) !== 0 && i - s >= len) out.push([s, i - 1, side(v[s])]); s = i; }
+  }
+  return out;
+}
+
+function analyse(values, cl, ucl, lcl){
+  var flags = values.map(function(v){ return (v > ucl || v < lcl) ? "out" : null; });
+  var runs = findRuns(values, cl, 7);
+  runs.forEach(function(r){ for (var i = r[0]; i <= r[1]; i++) if (!flags[i]) flags[i] = "run"; });
+  return {flags:flags, runs:runs};
+}
+
+function drawPanel(g, o){
+  var m = {l:70, r:112, t:36, b:48};
+  var pw = o.w - m.l - m.r, ph = o.h - m.t - m.b;
+  var all = o.values.concat([o.ucl, o.lcl, o.cl]);
+  var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
+  var pad = (hi - lo) * 0.1 || 1; lo -= pad; hi += pad;
+  if (o.floor !== undefined) lo = Math.max(lo, o.floor);
+  var ticks = niceTicks(lo, hi, 6);
+  var dec = ticks.length > 1 ? decimalsOf(ticks[1] - ticks[0]) : 0;
+  var n = o.values.length;
+  function X(i){ return o.x + m.l + (n === 1 ? pw / 2 : i * pw / (n - 1)); }
+  function Y(v){ return o.y + m.t + ph - (v - lo) / (hi - lo) * ph; }
+
+  txt(g, o.x + m.l, o.y + 20, o.title, {"class":"t"});
+  ticks.forEach(function(t){
+    if (t < lo || t > hi) return;
+    el("line", {x1:o.x + m.l, x2:o.x + m.l + pw, y1:Y(t), y2:Y(t), stroke:"#DDE6E3", "stroke-width":1}, g);
+    txt(g, o.x + m.l - 8, Y(t) + 4, o.tick ? o.tick(t, dec) : t.toFixed(dec), {"class":"ax", "text-anchor":"end"});
+  });
+  el("line", {x1:o.x + m.l, x2:o.x + m.l, y1:o.y + m.t, y2:o.y + m.t + ph, stroke:C.pencil, "stroke-width":1}, g);
+  el("line", {x1:o.x + m.l, x2:o.x + m.l + pw, y1:o.y + m.t + ph, y2:o.y + m.t + ph, stroke:C.pencil, "stroke-width":1}, g);
+
+  // limit lines and labels (labels nudged apart if they would overlap)
+  var lines = [["UCL", o.ucl, "lim"], ["CL", o.cl, "cl"], ["LCL", o.lcl, "lim"]];
+  var ys = lines.map(function(l){ return Y(l[1]) + 4; });
+  if (ys[1] - ys[0] < 14) ys[0] = ys[1] - 14;
+  if (ys[2] - ys[1] < 14) ys[2] = ys[1] + 14;
+  lines.forEach(function(l, i){
+    var isLim = l[2] === "lim";
+    el("line", {x1:o.x + m.l, x2:o.x + m.l + pw, y1:Y(l[1]), y2:Y(l[1]),
+      stroke:isLim ? C.red : C.ink, "stroke-width":isLim ? 2 : 1.5, "stroke-dasharray":isLim ? "7 5" : "none"}, g);
+    txt(g, o.x + m.l + pw + 8, ys[i], l[0] + " " + o.fmt(l[1]), {"class":l[2]});
+  });
+
+  var step = n <= 25 ? 1 : Math.ceil(n / 20);
+  o.values.forEach(function(v, i){
+    if (i % step === 0 || i === n - 1) txt(g, X(i), o.y + m.t + ph + 17, String(i + 1), {"class":"ax", "text-anchor":"middle"});
+  });
+  txt(g, o.x + m.l + pw / 2, o.y + m.t + ph + 38, "Sample number", {"class":"ax", "text-anchor":"middle"});
+
+  el("polyline", {points:o.values.map(function(v, i){ return X(i) + "," + Y(v); }).join(" "),
+    fill:"none", stroke:C.ink, "stroke-width":1.8, "stroke-linejoin":"round"}, g);
+  o.values.forEach(function(v, i){
+    var f = o.flags[i];
+    if (f === "run") el("circle", {cx:X(i), cy:Y(v), r:8.5, fill:"none", stroke:C.red, "stroke-width":2}, g);
+    var c = el("circle", {cx:X(i), cy:Y(v), r:f === "out" ? 6.5 : 4.2, fill:f === "out" ? C.red : C.ink, stroke:"#fff", "stroke-width":1.2}, g);
+    var tt = el("title", null, c); tt.textContent = "Sample " + (i + 1) + ": " + o.fmt(v);
+  });
+}
+
+function setStamp(ok){
+  var s = $("cc-stamp");
+  s.textContent = ok ? "In control" : "Out of control";
+  s.className = "stamp" + (ok ? "" : " bad");
+  void s.offsetWidth; s.className += " thunk";
+}
+
+function joinNums(arr){
+  var a = arr.map(function(i){ return String(i + 1); });
+  return a.length === 1 ? a[0] : a.slice(0, -1).join(", ") + " and " + a[a.length - 1];
+}
+// meaning: what a run on this chart suggests
+function describe(label, values, cl, res, fmtv, ucl, lcl, chartName, meaning){
+  var items = [], above = [], below = [];
+  values.forEach(function(v, i){ if (v > ucl) above.push(i); else if (v < lcl) below.push(i); });
+  if (above.length + below.length <= 3){
+    above.forEach(function(i){
+      items.push("<li><strong>Sample " + (i + 1) + "</strong> (" + label + " " + fmtv(values[i]) + ") is above the upper limit of " + fmtv(ucl) + " on the " + chartName + ". Find out what was different for this sample.</li>");
+    });
+    below.forEach(function(i){
+      items.push("<li><strong>Sample " + (i + 1) + "</strong> (" + label + " " + fmtv(values[i]) + ") is below the lower limit of " + fmtv(lcl) + " on the " + chartName + ". Find out what was different for this sample.</li>");
+    });
+  } else {
+    var parts = [];
+    if (above.length) parts.push("above the upper limit: sample" + (above.length > 1 ? "s " : " ") + joinNums(above));
+    if (below.length) parts.push("below the lower limit: sample" + (below.length > 1 ? "s " : " ") + joinNums(below));
+    items.push("<li><strong>" + (above.length + below.length) + " samples are outside the limits</strong> on the " + chartName + ". " + (function(t){ return t.charAt(0).toUpperCase() + t.slice(1); })(parts.join("; ")) + ". With this many, the process itself has probably changed; look for what these samples have in common.</li>");
+  }
+  res.runs.forEach(function(r){
+    items.push("<li><strong>Samples " + (r[0] + 1) + " to " + (r[1] + 1) + "</strong>: " + (r[1] - r[0] + 1) + " in a row " + (r[2] > 0 ? "above" : "below") + " the centre line on the " + chartName + ". " + meaning + "</li>");
+  });
+  return items;
+}
+
+var lastGood = {control:false};
+function ccError(msg){
+  $("cc-error").textContent = msg || "";
+  $("cc-chart").classList.toggle("stale", !!msg);
+}
+
+function drawControl(){
+  var type = $("cc-type").value;
+  $("cc-xr-inputs").hidden = type !== "xr";
+  $("cc-p-inputs").hidden = type !== "p";
+  if (type === "xr") drawXR(); else drawP();
+}
+
+function drawXR(){
+  var raw = $("cc-xr-data").value.split(/\r?\n/), rows = [], strRows = [];
+  for (var li = 0; li < raw.length; li++){
+    if (!raw[li].trim()) continue;
+    var parts = parseNumbers(raw[li]);
+    var nums = parts.map(Number);
+    for (var j = 0; j < nums.length; j++){
+      if (!isFinite(nums[j])) return ccError("Line " + (li + 1) + " has \"" + parts[j] + "\", which isn't a number. Use digits only, with a dot for decimals.");
+    }
+    rows.push(nums); strRows.push(parts);
+  }
+  if (rows.length === 0) return ccError("Type at least 2 samples to draw the chart, or choose Load example.");
+  var n = rows[0].length;
+  if (n < 2 || n > 10) return ccError("Each sample needs 2 to 10 values. The first sample has " + n + ".");
+  for (var r = 1; r < rows.length; r++){
+    if (rows[r].length !== n) return ccError("Sample " + (r + 1) + " has " + rows[r].length + " values but sample 1 has " + n + ". Every sample needs the same number of values.");
+  }
+  if (rows.length < 2) return ccError("Add at least one more sample to draw the chart.");
+  ccError("");
+
+  var dIn = maxDecimals(strRows), d = Math.min(dIn + 1, 3) || 2;
+  var means = rows.map(function(a){ return a.reduce(function(s, x){ return s + x; }, 0) / a.length; });
+  var ranges = rows.map(function(a){ return Math.max.apply(null, a) - Math.min.apply(null, a); });
+  var xbb = means.reduce(function(s, x){ return s + x; }, 0) / means.length;
+  var rb = ranges.reduce(function(s, x){ return s + x; }, 0) / ranges.length;
+  var k = K[n], A2 = k[0], D3 = k[1], D4 = k[2];
+  var uclx = xbb + A2 * rb, lclx = xbb - A2 * rb, uclr = D4 * rb, lclr = D3 * rb;
+  function f(v){ return fmt(v, d); }
+
+  var resX = analyse(means, xbb, uclx, lclx), resR = analyse(ranges, rb, uclr, lclr);
+  var svg = newSvg($("cc-chart"), 820, 640, "X-bar and R control charts for " + rows.length + " samples");
+  var g = el("g", null, svg);
+  drawPanel(g, {x:0, y:0, w:820, h:320, values:means, cl:xbb, ucl:uclx, lcl:lclx, flags:resX.flags, title:"X-bar chart: average of each sample", fmt:f});
+  drawPanel(g, {x:0, y:320, w:820, h:320, values:ranges, cl:rb, ucl:uclr, lcl:lclr, flags:resR.flags, title:"R chart: range of each sample (largest minus smallest)", fmt:f, floor:0});
+
+  var items = describe("average", means, xbb, resX, f, uclx, lclx, "X-bar chart", "The process average has probably shifted, even if no point is outside the limits.")
+    .concat(describe("range", ranges, rb, resR, f, uclr, lclr, "R chart", "The spread of the process has probably changed, even if no point is outside the limits."));
+  var ok = items.length === 0;
+  setStamp(ok);
+  $("cc-verdict-text").textContent = ok
+    ? "Every sample is inside the limits on both charts, with no unusual runs. Only normal variation is showing, so leave the process alone."
+    : "Something unusual has happened. Investigate the samples listed below before trusting this process.";
+  $("cc-findings").innerHTML = ok ? "<li>No points outside the limits and no runs of 7 or more on one side of the centre line.</li>" : items.join("");
+
+  $("cc-calc").innerHTML = [
+    "Sample size n = " + n + ", so from the table of constants A<sub>2</sub> = " + A2 + ", D<sub>3</sub> = " + D3 + ", D<sub>4</sub> = " + D4,
+    "Grand average <span class=\"ov2\">X</span> = average of the " + rows.length + " sample averages = " + f(xbb),
+    "Average range <span class=\"ov\">R</span> = average of the " + rows.length + " ranges = " + f(rb),
+    "UCL for X-bar = <span class=\"ov2\">X</span> + A<sub>2</sub> &times; <span class=\"ov\">R</span> = " + f(xbb) + " + " + A2 + " &times; " + f(rb) + " = <strong>" + f(uclx) + "</strong>",
+    "LCL for X-bar = <span class=\"ov2\">X</span> &minus; A<sub>2</sub> &times; <span class=\"ov\">R</span> = " + f(xbb) + " &minus; " + A2 + " &times; " + f(rb) + " = <strong>" + f(lclx) + "</strong>",
+    "UCL for R = D<sub>4</sub> &times; <span class=\"ov\">R</span> = " + D4 + " &times; " + f(rb) + " = <strong>" + f(uclr) + "</strong>",
+    "LCL for R = D<sub>3</sub> &times; <span class=\"ov\">R</span> = " + D3 + " &times; " + f(rb) + " = <strong>" + f(lclr) + "</strong>"
+  ].map(function(s){ return "<li>" + s + "</li>"; }).join("");
+
+  var t = "<table><thead><tr><th>Sample</th><th>Values</th><th>Average</th><th>Range</th></tr></thead><tbody>";
+  rows.forEach(function(a, i){
+    t += "<tr><td>" + (i + 1) + "</td><td>" + esc(strRows[i].join(", ")) + "</td><td>" + f(means[i]) + "</td><td>" + f(ranges[i]) + "</td></tr>";
+  });
+  $("cc-table").innerHTML = t + "</tbody></table>";
+}
+
+function drawP(){
+  var nRaw = $("cc-p-n").value.trim(), n = Number(nRaw);
+  if (!nRaw) return ccError("Enter how many items were checked in each sample.");
+  if (!isFinite(n) || n < 1 || Math.floor(n) !== n) return ccError("Items checked must be a whole number of 1 or more.");
+  var parts = parseNumbers($("cc-p-data").value), d = [];
+  for (var i = 0; i < parts.length; i++){
+    var v = Number(parts[i]);
+    if (!isFinite(v) || v < 0 || Math.floor(v) !== v) return ccError("\"" + parts[i] + "\" isn't a whole number. Defectives must be counts like 0, 3 or 12.");
+    if (v > n) return ccError("Sample " + (i + 1) + " has " + v + " defectives, but only " + n + " items were checked.");
+    d.push(v);
+  }
+  if (d.length < 2) return ccError("Type at least 2 samples to draw the chart, or choose Load example.");
+  ccError("");
+
+  var total = d.reduce(function(s, x){ return s + x; }, 0);
+  var pbar = total / (n * d.length);
+  var sigma = Math.sqrt(pbar * (1 - pbar) / n);
+  var ucl = Math.min(1, pbar + 3 * sigma), lclRaw = pbar - 3 * sigma, lcl = Math.max(0, lclRaw);
+  var p = d.map(function(x){ return x / n; });
+  function pct(v){ return fmt(v * 100, 1) + "%"; }
+
+  var res = analyse(p, pbar, ucl, lcl);
+  // a point exactly at 0 with LCL 0 is not out of control
+  res.flags = res.flags.map(function(fl, i){ return (fl === "out" && lcl === 0 && p[i] === 0) ? null : fl; });
+  var svg = newSvg($("cc-chart"), 820, 340, "p-chart for " + d.length + " samples");
+  drawPanel(el("g", null, svg), {x:0, y:0, w:820, h:340, values:p, cl:pbar, ucl:ucl, lcl:lcl, flags:res.flags,
+    title:"p-chart: share of defectives in each sample", fmt:pct, floor:0,
+    tick:function(t, dec){ return (t * 100).toFixed(Math.max(0, dec - 2)) + "%"; }});
+
+  var items = describe("defective share", p, pbar, res, pct, ucl, lcl, "p-chart", "The defect rate has probably shifted, even if no point is outside the limits.");
+  var ok = items.length === 0;
+  setStamp(ok);
+  $("cc-verdict-text").textContent = ok
+    ? "Every sample is inside the limits, with no unusual runs. The defect rate is stable; to reduce it, the process itself has to change."
+    : "Something unusual has happened. Investigate the samples listed below.";
+  $("cc-findings").innerHTML = ok ? "<li>No points outside the limits and no runs of 7 or more on one side of the centre line.</li>" : items.join("");
+
+  $("cc-calc").innerHTML = [
+    "Total defectives = " + total + " out of " + (n * d.length) + " items checked (" + d.length + " samples of " + n + ")",
+    "Average defective share p&#772; = " + total + " &divide; " + (n * d.length) + " = " + fmt(pbar, 4) + " (" + pct(pbar) + ")",
+    "Standard deviation = &radic;(p&#772; &times; (1 &minus; p&#772;) &divide; n) = &radic;(" + fmt(pbar, 4) + " &times; " + fmt(1 - pbar, 4) + " &divide; " + n + ") = " + fmt(sigma, 4),
+    "UCL = p&#772; + 3 &times; " + fmt(sigma, 4) + " = <strong>" + fmt(ucl, 4) + " (" + pct(ucl) + ")</strong>",
+    "LCL = p&#772; &minus; 3 &times; " + fmt(sigma, 4) + " = " + fmt(lclRaw, 4).replace("-", "&minus;") + (lclRaw < 0 ? ", which is below zero, so LCL = <strong>0</strong>" : " = <strong>" + fmt(lcl, 4) + " (" + pct(lcl) + ")</strong>")
+  ].map(function(s){ return "<li>" + s + "</li>"; }).join("");
+
+  var t = "<table><thead><tr><th>Sample</th><th>Checked</th><th>Defectives</th><th>Share</th></tr></thead><tbody>";
+  d.forEach(function(x, i){ t += "<tr><td>" + (i + 1) + "</td><td>" + n + "</td><td>" + x + "</td><td>" + pct(p[i]) + "</td></tr>"; });
+  $("cc-table").innerHTML = t + "</tbody></table>";
+}
+
+function ccExample(){
+  if ($("cc-type").value === "xr") $("cc-xr-data").value = XR_EXAMPLE;
+  else { $("cc-p-n").value = P_EXAMPLE_N; $("cc-p-data").value = P_EXAMPLE; }
+  drawControl();
+}
+$("cc-type").addEventListener("change", function(){
+  if ($("cc-type").value === "p" && !$("cc-p-data").value.trim() && !$("cc-p-n").value) { $("cc-p-n").value = P_EXAMPLE_N; $("cc-p-data").value = P_EXAMPLE; }
+  drawControl();
+});
+["cc-xr-data", "cc-p-data", "cc-p-n"].forEach(function(id){ $(id).addEventListener("input", debounce(drawControl, 250)); });
+$("cc-example").addEventListener("click", ccExample);
+$("cc-clear").addEventListener("click", function(){
+  if ($("cc-type").value === "xr") $("cc-xr-data").value = ""; else { $("cc-p-data").value = ""; }
+  drawControl();
+  ($("cc-type").value === "xr" ? $("cc-xr-data") : $("cc-p-data")).focus();
+});
+$("cc-download").addEventListener("click", function(){
+  downloadSvg($("cc-chart"), $("cc-type").value === "xr" ? "x-bar-r-chart.png" : "p-chart.png");
+});
+
+/* ---------------- Pareto ---------------- */
+var PA_TITLE = "Customer complaints in one month";
+var PA_EXAMPLE = "Long waiting time, 48\nCold food, 22\nWrong order, 15\nStaff behaviour, 8\nDirty tables, 5\nPrice too high, 4\nOther, 3";
+
+function paError(msg){ $("pa-error").textContent = msg || ""; $("pa-chart").classList.toggle("stale", !!msg); }
+
+function drawPareto(){
+  var lines = $("pa-data").value.split(/\r?\n/), items = [];
+  for (var i = 0; i < lines.length; i++){
+    var line = lines[i].trim(); if (!line) continue;
+    var m = line.match(/^(.*?)[,\t;:]\s*([0-9]+(?:\.[0-9]+)?)\s*$/) || line.match(/^(.*\S)\s+([0-9]+(?:\.[0-9]+)?)$/);
+    if (!m || !m[1].trim()) return paError("Line " + (i + 1) + " needs a cause name and a count, like \"Cold food, 22\".");
+    var v = Number(m[2]);
+    items.push({name:m[1].trim(), count:v});
+  }
+  if (items.length < 2) return paError("Type at least 2 causes with counts, or choose Load example.");
+  var total = items.reduce(function(s, x){ return s + x.count; }, 0);
+  if (total <= 0) return paError("All the counts are zero. Enter how many times each cause happened.");
+  paError("");
+
+  items.sort(function(a, b){ return b.count - a.count; });
+  var cum = 0, vitalCount = 0;
+  items.forEach(function(it){
+    cum += it.count; it.pct = it.count / total; it.cum = cum / total;
+  });
+  for (var j = 0; j < items.length; j++){ vitalCount = j + 1; if (items[j].cum >= 0.8 - 1e-9) break; }
+  items.forEach(function(it, idx){ it.vital = idx < vitalCount; });
+
+  var title = $("pa-title").value.trim() || "Counts by cause";
+  var W = 820, H = 440, m = {l:62, r:58, t:40, b:96};
+  var pw = W - m.l - m.r, ph = H - m.t - m.b, k = items.length, bw = pw / k;
+  var svg = newSvg($("pa-chart"), W, H, "Pareto chart of " + title);
+  var g = el("g", null, svg);
+  function Yc(c){ return m.t + ph - c / total * ph; }
+  function Yp(p){ return m.t + ph - p * ph; }
+  txt(g, m.l, 24, title, {"class":"t"});
+
+  var isInt = items.every(function(it){ return Math.floor(it.count) === it.count; });
+  [0, 0.2, 0.4, 0.6, 0.8, 1].forEach(function(p){
+    el("line", {x1:m.l, x2:m.l + pw, y1:Yp(p), y2:Yp(p), stroke:"#DDE6E3", "stroke-width":1}, g);
+    var c = total * p;
+    txt(g, m.l - 8, Yp(p) + 4, isInt ? String(Math.round(c)) : fmt(c, 1), {"class":"ax", "text-anchor":"end"});
+    txt(g, m.l + pw + 8, Yp(p) + 4, Math.round(p * 100) + "%", {"class":"ax"});
+  });
+  el("line", {x1:m.l, x2:m.l, y1:m.t, y2:m.t + ph, stroke:C.pencil}, g);
+  el("line", {x1:m.l + pw, x2:m.l + pw, y1:m.t, y2:m.t + ph, stroke:C.pencil}, g);
+  el("line", {x1:m.l, x2:m.l + pw, y1:m.t + ph, y2:m.t + ph, stroke:C.pencil}, g);
+
+  var maxChars = Math.max(5, Math.floor(bw / 7.8));
+  items.forEach(function(it, i){
+    var x = m.l + i * bw + bw * 0.14, w = bw * 0.72, y = Yc(it.count);
+    var r = el("rect", {x:x, y:y, width:w, height:m.t + ph - y, fill:it.vital ? C.ink : C.soft}, g);
+    el("title", null, r).textContent = it.name + ": " + it.count;
+    txt(g, x + w / 2, y - 6, isInt ? String(it.count) : fmt(it.count, 1), {"class":"small", "text-anchor":"middle"});
+    wrap(it.name, maxChars, 3).forEach(function(line, li){
+      txt(g, m.l + i * bw + bw / 2, m.t + ph + 18 + li * 15, line, {"class":"small", "text-anchor":"middle"});
+    });
+  });
+
+  el("line", {x1:m.l, x2:m.l + pw, y1:Yp(0.8), y2:Yp(0.8), stroke:C.red, "stroke-width":1.5, "stroke-dasharray":"6 5"}, g);
+  txt(g, m.l + pw - 4, Yp(0.8) - 6, "80%", {"class":"lim", "text-anchor":"end"});
+  var pts = items.map(function(it, i){ return (m.l + i * bw + bw / 2) + "," + Yp(it.cum); });
+  el("polyline", {points:pts.join(" "), fill:"none", stroke:C.red, "stroke-width":2.2, "stroke-linejoin":"round"}, g);
+  items.forEach(function(it, i){
+    var c = el("circle", {cx:m.l + i * bw + bw / 2, cy:Yp(it.cum), r:4.5, fill:"#fff", stroke:C.red, "stroke-width":2}, g);
+    el("title", null, c).textContent = "Running total: " + fmt(it.cum * 100, 1) + "%";
+  });
+  // legend
+  var lx = m.l + 8, ly = H - 16;
+  el("rect", {x:lx, y:ly - 10, width:12, height:12, fill:C.ink}, g); txt(g, lx + 18, ly, "Vital few", {"class":"small"});
+  el("rect", {x:lx + 100, y:ly - 10, width:12, height:12, fill:C.soft}, g); txt(g, lx + 118, ly, "Trivial many", {"class":"small"});
+  el("line", {x1:lx + 225, x2:lx + 250, y1:ly - 4, y2:ly - 4, stroke:C.red, "stroke-width":2.2}, g); txt(g, lx + 256, ly, "Running total (%)", {"class":"small"});
+
+  var vitalPct = items[vitalCount - 1].cum * 100;
+  var names = items.slice(0, vitalCount).map(function(it){ return it.name.toLowerCase(); });
+  var list = names.length === 1 ? names[0] : names.slice(0, -1).join(", ") + " and " + names[names.length - 1];
+  $("pa-summary").innerHTML = "<strong>" + vitalCount + " of " + k + " causes</strong> make up " + fmt(vitalPct, 0) + "% of the total (" + (isInt ? total : fmt(total, 1)) + "). Fix " + esc(list) + " first.";
+
+  var t = "<table><thead><tr><th>Cause</th><th>Count</th><th>Share</th><th>Running total</th></tr></thead><tbody>";
+  items.forEach(function(it){
+    t += "<tr" + (it.vital ? " class=\"vital\"" : "") + "><td>" + esc(it.name) + (it.vital ? "<span class=\"tag\">Fix first</span>" : "") + "</td><td>" + (isInt ? it.count : fmt(it.count, 1)) + "</td><td>" + fmt(it.pct * 100, 1) + "%</td><td>" + fmt(it.cum * 100, 1) + "%</td></tr>";
+  });
+  $("pa-table").innerHTML = t + "</tbody></table>";
+}
+$("pa-data").addEventListener("input", debounce(drawPareto, 250));
+$("pa-title").addEventListener("input", debounce(drawPareto, 250));
+$("pa-example").addEventListener("click", function(){ $("pa-title").value = PA_TITLE; $("pa-data").value = PA_EXAMPLE; drawPareto(); });
+$("pa-clear").addEventListener("click", function(){ $("pa-data").value = ""; drawPareto(); $("pa-data").focus(); });
+$("pa-download").addEventListener("click", function(){ downloadSvg($("pa-chart"), "pareto-chart.png"); });
+
+/* ---------------- Fishbone ---------------- */
+var TEMPLATES = {
+  service:["People", "Process", "Equipment", "Materials", "Place", "Measurement"],
+  mfg:["Manpower", "Machine", "Method", "Material", "Measurement", "Environment"]
+};
+var FB_PROBLEM = "Customers wait too long for their order";
+var FB_EXAMPLE = [
+  "Only one cook at peak hours\n*Same person takes orders and cooks\nNew staff not trained",
+  "*Every order made from scratch\nNo token system\nBilling slows the queue",
+  "One small tawa\nNo order screen for the kitchen",
+  "*Filling not prepared before the rush\nBuns run out at peak",
+  "Small counter space\nSeating full with two families",
+  "Waiting time never recorded\nNo data on peak hours"
+];
+
+function buildCats(){
+  var box = $("fb-cats"), names = TEMPLATES[$("fb-template").value], html = "";
+  for (var i = 0; i < 6; i++){
+    html += "<div class=\"fb-cat\"><label for=\"fb-name-" + i + "\">Bone " + (i + 1) + " name</label>" +
+      "<input type=\"text\" id=\"fb-name-" + i + "\" value=\"" + esc(names[i]) + "\">" +
+      "<label for=\"fb-causes-" + i + "\">Causes under " + esc(names[i]) + "</label>" +
+      "<textarea id=\"fb-causes-" + i + "\" spellcheck=\"true\"></textarea></div>";
+  }
+  box.innerHTML = html;
+  for (var j = 0; j < 6; j++){
+    (function(jj){
+      $("fb-name-" + jj).addEventListener("input", function(){
+        $("fb-name-" + jj).nextElementSibling.textContent = "Causes under " + ($("fb-name-" + jj).value || "this bone");
+        fbDraw();
+      });
+      $("fb-causes-" + jj).addEventListener("input", fbDraw);
+    })(j);
+  }
+}
+var fbDraw = debounce(drawFishbone, 200);
+
+function drawFishbone(){
+  var problem = $("fb-problem").value.trim() || "Write the problem here";
+  var cats = [];
+  for (var i = 0; i < 6; i++){
+    cats.push({
+      name:$("fb-name-" + i).value.trim() || "Bone " + (i + 1),
+      causes:$("fb-causes-" + i).value.split(/\r?\n/).map(function(s){ return s.trim(); }).filter(Boolean).slice(0, 6)
+    });
+  }
+  var W = 1040, H = 620, spineY = 310, spineX0 = 24, spineX1 = 815;
+  var svg = newSvg($("fb-chart"), W, H, "Fishbone diagram for: " + problem);
+  var g = el("g", null, svg);
+
+  // spine and head
+  el("line", {x1:spineX0, x2:spineX1, y1:spineY, y2:spineY, stroke:C.ink, "stroke-width":4}, g);
+  el("path", {d:"M" + (spineX1 - 2) + " " + (spineY - 12) + " L" + (spineX1 + 16) + " " + spineY + " L" + (spineX1 - 2) + " " + (spineY + 12) + " Z", fill:C.ink}, g);
+  var headLines = wrap(problem, 17, 6), hh = Math.max(120, headLines.length * 23 + 32);
+  el("rect", {x:832, y:spineY - hh / 2, width:196, height:hh, rx:8, fill:C.ink}, g);
+  headLines.forEach(function(l, li){
+    txt(g, 930, spineY - (headLines.length - 1) * 23 / 2 + li * 23 + 6, l, {"class":"head", "text-anchor":"middle"});
+  });
+
+  var attachX = [335, 570, 800], dx = -150, dy = 220, roots = 0;
+  cats.forEach(function(cat, idx){
+    var top = idx < 3, ax = attachX[idx % 3], sign = top ? -1 : 1;
+    var ex = ax + dx, ey = spineY + sign * dy;
+    el("line", {x1:ax, y1:spineY, x2:ex, y2:ey, stroke:C.ink, "stroke-width":2.5}, g);
+    // category label box at the end of the bone
+    var bw = Math.max(104, cat.name.length * 9.6 + 28), by = top ? ey - 38 : ey + 4;
+    el("rect", {x:ex - bw / 2, y:by, width:bw, height:34, rx:5, fill:C.ink}, g);
+    txt(g, ex, by + 23, cat.name, {"class":"cat", "text-anchor":"middle"});
+
+    var nC = cat.causes.length;
+    cat.causes.forEach(function(raw, ci){
+      var isRoot = raw.charAt(0) === "*", label = isRoot ? raw.slice(1).trim() : raw;
+      if (isRoot) roots++;
+      var t = 0.2 + (ci + 0.5) * (0.75 / Math.max(nC, 1));
+      var px = ax + dx * t, py = spineY + sign * dy * t;
+      // Text sits on the side of the cause line away from the bone, so it never crosses it:
+      // below the line on top bones, above the line on bottom bones.
+      var lines = wrap(label, 22, 2);
+      el("line", {x1:px - 172, y1:py, x2:px, y2:py, stroke:isRoot ? C.red : C.pencil, "stroke-width":isRoot ? 2.2 : 1.4}, g);
+      el("circle", {cx:px, cy:py, r:3, fill:isRoot ? C.red : C.ink}, g);
+      lines.forEach(function(l, li){
+        var y = top ? py + 17 + li * 16 : py - 7 - (lines.length - 1 - li) * 16;
+        txt(g, px - 8, y, l, {"class":"cause" + (isRoot ? " root" : ""), "text-anchor":"end"});
+      });
+    });
+  });
+
+  var count = cats.reduce(function(s, c){ return s + c.causes.length; }, 0);
+  $("fb-summary").innerHTML = count === 0
+    ? "Add causes under each bone to build the diagram."
+    : "<strong>" + count + " possible causes</strong> across 6 categories" + (roots ? ", with " + roots + " marked as likely root cause" + (roots > 1 ? "s" : "") + " in red." : ". Mark the likely root causes with * to highlight them.");
+}
+
+function fbExample(){
+  $("fb-template").value = "service"; buildCats();
+  $("fb-problem").value = FB_PROBLEM;
+  FB_EXAMPLE.forEach(function(s, i){ $("fb-causes-" + i).value = s; });
+  drawFishbone();
+}
+$("fb-template").addEventListener("change", function(){
+  var keep = []; for (var i = 0; i < 6; i++) keep.push($("fb-causes-" + i).value);
+  buildCats(); keep.forEach(function(s, i){ $("fb-causes-" + i).value = s; }); drawFishbone();
+});
+$("fb-problem").addEventListener("input", fbDraw);
+$("fb-example").addEventListener("click", fbExample);
+$("fb-clear").addEventListener("click", function(){
+  $("fb-problem").value = ""; for (var i = 0; i < 6; i++) $("fb-causes-" + i).value = "";
+  drawFishbone(); $("fb-problem").focus();
+});
+$("fb-download").addEventListener("click", function(){ downloadSvg($("fb-chart"), "fishbone-diagram.png"); });
+
+/* ---------------- Start ---------------- */
+$("cc-xr-data").value = XR_EXAMPLE;
+drawControl();
+$("pa-title").value = PA_TITLE; $("pa-data").value = PA_EXAMPLE; drawPareto();
+buildCats(); fbExample();
+})();
+</script>
+</body>
+</html>
