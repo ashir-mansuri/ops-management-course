@@ -9,8 +9,6 @@
 | `index.html` | Course home page with links to everything |
 | `quality-tools.html` | Quality Tools Lab: control charts (X-bar and R, p-chart), Pareto charts and fishbone diagrams. Students type or paste their own data and see the chart, the verdict and the working. |
 
-Coming soon: unit quizzes, classroom simulations (beer game), syllabus and slides.
-
 ## How the calculations work
 
 The Quality Tools Lab does every calculation below automatically, and shows the working under "How the limits were worked out". This section explains the same steps so students can do them by hand or in Excel. Each method finishes with a worked example that uses the example data loaded in the lab, so the numbers can be checked against the screen.
