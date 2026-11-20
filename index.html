@@ -1,143 +1,216 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="daylight">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Operations Management | Course resources</title>
-<meta name="description" content="Course resources for Operations Management: interactive quality tools, quizzes, simulations and slides.">
+<meta name="description" content="Course resources for Operations Management: interactive quality tools for control charts, Pareto charts and fishbone diagrams.">
+<script>
+(function(){ var t = "daylight"; try { t = localStorage.getItem("ops-theme") || t; } catch (e) {}
+  if (["daylight","night","blueprint"].indexOf(t) < 0) t = "daylight";
+  document.documentElement.setAttribute("data-theme", t); })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --paper:#F3F7F6; --sheet:#FFFFFF; --line:#C9D6D2; --ink:#1B2A4A;
-    --pencil:#56637A; --red:#C62828; --green:#1E7B4F; --focus:#1F5FD1;
+  /* ---------- Themes ---------- */
+  :root,[data-theme="daylight"]{
+    --bg:#E9EDF1; --surface:#FFFFFF; --ink:#16202C; --muted:#586474; --line:#D3DAE1; --soft:#F3F5F8;
+    --console:#1B2530; --console-ink:#EEF2F6; --console-muted:#A9B5C2; --field:#25313E; --field-line:#3D4B5B;
+    --accent:#F2711C; --on-accent:#16202C; --ok:#1C8F4D; --bad:#D93036; --focus:#2563EB;
+    --c-bg:#FFFFFF; --c-grid:#F0F3F6; --c-grid2:#E2E7ED; --c-tick:#E3E8EE; --c-text:#16202C; --c-muted:#586474; --c-axis:#8794A3;
+    --c-line:#1D4ED8; --c-center:#16202C; --c-limit:#D93036; --c-bar:#1D4ED8; --c-bar2:#BAC6D4; --c-cum:#E8650F;
+    --c-bone:#1B2530; --c-box:#1B2530; --c-box-text:#FFFFFF;
+    color-scheme:light;
   }
+  [data-theme="night"]{
+    --bg:#0B0F14; --surface:#131A22; --ink:#E6EBF0; --muted:#9AA8B7; --line:#253140; --soft:#19222C;
+    --console:#1B2430; --console-ink:#E6EBF0; --console-muted:#9AA8B7; --field:#10161D; --field-line:#33414F;
+    --accent:#F5A524; --on-accent:#111418; --ok:#3BCB80; --bad:#F26363; --focus:#7AB8FF;
+    --c-bg:#131A22; --c-grid:#18202A; --c-grid2:#212B37; --c-tick:#222C38; --c-text:#E6EBF0; --c-muted:#A3B0BE; --c-axis:#5E6C7C;
+    --c-line:#F5A524; --c-center:#E6EBF0; --c-limit:#F26363; --c-bar:#F5A524; --c-bar2:#3D4A5A; --c-cum:#6CC6FF;
+    --c-bone:#E6EBF0; --c-box:#F5A524; --c-box-text:#111418;
+    color-scheme:dark;
+  }
+  [data-theme="blueprint"]{
+    --bg:#0A2C66; --surface:#0E3A85; --ink:#FFFFFF; --muted:#C3D3F3; --line:#2D5CAB; --soft:#12408F;
+    --console:#082456; --console-ink:#FFFFFF; --console-muted:#B3C6EE; --field:#0B2F6E; --field-line:#3D6AB8;
+    --accent:#FFD24A; --on-accent:#0A2C66; --ok:#5BE39A; --bad:#FF8484; --focus:#FFD24A;
+    --c-bg:#0E3A85; --c-grid:#154392; --c-grid2:#2251A2; --c-tick:#2A58A8; --c-text:#FFFFFF; --c-muted:#CCDAF6; --c-axis:#8FAEE3;
+    --c-line:#FFFFFF; --c-center:#FFFFFF; --c-limit:#FF8A8A; --c-bar:#FFFFFF; --c-bar2:#6F90CC; --c-cum:#FFD24A;
+    --c-bone:#FFFFFF; --c-box:#FFFFFF; --c-box-text:#0A2C66;
+    color-scheme:dark;
+  }
+
+  /* ---------- Base ---------- */
   *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
   body{
-    margin:0;background:var(--paper);color:var(--ink);
-    font-family:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-    font-size:17px;line-height:1.5;
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    font-size:17px;line-height:1.5;font-variant-numeric:tabular-nums;
   }
-  a{color:var(--ink)}
+  a{color:inherit}
   :focus-visible{outline:3px solid var(--focus);outline-offset:2px}
-  .wrap{max-width:1040px;margin:0 auto;padding:0 24px}
+  .wrap{max-width:1260px;margin:0 auto;padding:0 24px}
+  .cond{font-family:"Barlow Condensed","Barlow",system-ui,sans-serif}
 
-  header{padding:46px 0 0}
-  h1{
-    font-stretch:125%;font-weight:800;letter-spacing:-.015em;
-    font-size:clamp(2.4rem,7.4vw,5.2rem);line-height:.98;margin:0 0 16px;max-width:12ch;
+  /* ---------- Top bar ---------- */
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-top:16px;padding-bottom:16px}
+  .brand{display:inline-flex;align-items:center;gap:10px;text-decoration:none;font-weight:600;font-size:1rem}
+  .brand:hover span:last-child{text-decoration:underline}
+  .mark{display:inline-flex;flex-direction:column;gap:2px;padding:4px 5px;border-radius:6px;background:var(--console)}
+  .mark i{display:block;width:8px;height:8px;border-radius:50%;background:#6B7684;opacity:.55}
+  .mark i:nth-child(1){background:#E5484D}
+  .mark i:nth-child(2){background:#F5A524}
+  .mark i:nth-child(3){background:#30C46F;opacity:1;box-shadow:0 0 6px #30C46F}
+  .themes{display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:var(--surface);border:1px solid var(--line)}
+  .themes button{
+    appearance:none;border:0;background:transparent;color:var(--muted);font:inherit;font-size:.9rem;font-weight:600;
+    display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;cursor:pointer;
   }
-  .who{margin:0;font-size:1.1rem;color:var(--pencil);max-width:60ch}
-  .who strong{color:var(--ink);font-weight:600}
+  .themes button:hover{color:var(--ink)}
+  .themes button[aria-pressed="true"]{background:var(--console);color:var(--console-ink)}
+  .swatch{width:12px;height:12px;border-radius:50%;border:1px solid rgba(127,127,127,.5);flex:none}
+  .swatch.daylight{background:linear-gradient(135deg,#FFFFFF 50%,#1D4ED8 50%)}
+  .swatch.night{background:linear-gradient(135deg,#131A22 50%,#F5A524 50%)}
+  .swatch.blueprint{background:linear-gradient(135deg,#0E3A85 50%,#FFD24A 50%)}
 
-  .strip{margin:34px 0 0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
-  .strip svg{display:block;width:100%;height:auto}
-
-  main{padding:34px 0 10px}
-  h2{font-stretch:112%;font-size:1.35rem;margin:0 0 6px}
-  .intro{margin:0 0 18px;color:var(--pencil)}
-
-  .list{list-style:none;margin:0;padding:0;border-top:2px solid var(--ink)}
-  .item{
-    display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 24px;align-items:center;
-    padding:22px 0;border-bottom:1px solid var(--line);
+  /* ---------- Buttons ---------- */
+  .btn{
+    font:inherit;font-weight:600;font-size:.95rem;cursor:pointer;text-decoration:none;display:inline-block;
+    padding:10px 16px;border-radius:9px;border:0;background:var(--accent);color:var(--on-accent);
   }
-  .item h3{font-stretch:112%;font-size:1.3rem;margin:0 0 4px}
-  .item h3 a{text-decoration:none}
-  .item h3 a:hover{text-decoration:underline}
-  .item p{margin:0;color:var(--pencil);max-width:60ch}
-  .jump{margin-top:8px !important;font-size:.95rem}
-  .jump a{margin-right:14px;color:var(--ink)}
-  .open{
-    display:inline-block;text-decoration:none;font-weight:600;font-size:.98rem;
-    background:var(--ink);color:#fff;border-radius:6px;padding:10px 18px;white-space:nowrap;
-  }
-  .open:hover{filter:brightness(1.2)}
-  .soon{color:var(--pencil);font-size:.95rem;white-space:nowrap;border:1px dashed var(--line);border-radius:6px;padding:9px 14px}
-  .item.later h3{color:var(--pencil)}
+  .btn:hover{filter:brightness(1.08)}
+  .btn.quiet{background:transparent;color:inherit;border:1.5px solid var(--field-line);padding:8.5px 14.5px}
+  .btn.quiet:hover{background:var(--field);filter:none}
 
-  footer{color:var(--pencil);font-size:.92rem;padding:26px 0 44px}
+  /* ---------- Home ---------- */
+  .hero{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:24px;padding:26px 0 30px}
+  h1{font-family:"Barlow Condensed","Barlow",system-ui,sans-serif;font-weight:700;letter-spacing:.003em;
+     font-size:clamp(3.1rem,9.5vw,7rem);line-height:.95;margin:0 0 16px;max-width:9ch}
+  .lede{margin:0;font-size:1.15rem;color:var(--muted)}
+  .tower{width:118px;height:auto;margin-right:12px}
+
+  .lab{background:var(--console);color:var(--console-ink);border-radius:20px;padding:30px}
+  .lab-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap}
+  .lab h2{font-family:"Barlow Condensed","Barlow",system-ui,sans-serif;font-weight:700;font-size:2.1rem;line-height:1;margin:0 0 8px}
+  .lab-head p{margin:0;max-width:60ch;color:var(--console-muted)}
+  .lab-head .btn{font-size:1.02rem;padding:12px 20px}
+  .tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:26px}
+  .tile{
+    display:block;text-decoration:none;color:var(--console-ink);background:var(--field);
+    border:1.5px solid var(--field-line);border-radius:14px;padding:20px 20px 22px;
+  }
+  .tile:hover{border-color:var(--accent)}
+  .tile svg{width:46px;height:46px;color:var(--accent);display:block;margin-bottom:14px}
+  .tile strong{display:block;font-family:"Barlow Condensed","Barlow",system-ui,sans-serif;font-weight:700;font-size:1.45rem;line-height:1.1;margin-bottom:4px}
+  .tile span{display:block;color:var(--console-muted);font-size:.98rem}
+  .note{color:var(--muted);margin:18px 2px 0}
+
+  footer{color:var(--muted);font-size:.92rem;padding:30px 0 44px}
   footer p{margin:4px 0}
 
-  @media (max-width:620px){
-    .wrap{padding:0 16px}
-    header{padding-top:30px}
-    .item{grid-template-columns:1fr}
-    .item .action{justify-self:start}
+  @media (max-width:820px){
+    .tiles{grid-template-columns:1fr}
+    .tile{display:grid;grid-template-columns:auto 1fr;column-gap:16px;align-items:center;padding:16px}
+    .tile svg{grid-row:span 2;margin:0;width:40px;height:40px}
+  }
+  @media (max-width:560px){
+    .wrap{padding:0 14px}
+    .hero{grid-template-columns:1fr}
+    .tower{display:none}
+    .lab{padding:20px;border-radius:16px}
+    .themes button{padding:6px 9px;font-size:.85rem}
   }
 </style>
 </head>
 <body>
+<div class="wrap topbar">
+  <span class="brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span><span>Course resources</span></span>
+  <div class="themes" role="group" aria-label="Colour theme">
+    <button type="button" data-theme-choice="daylight" aria-pressed="true"><span class="swatch daylight" aria-hidden="true"></span>Daylight</button>
+    <button type="button" data-theme-choice="night" aria-pressed="false"><span class="swatch night" aria-hidden="true"></span>Night shift</button>
+    <button type="button" data-theme-choice="blueprint" aria-pressed="false"><span class="swatch blueprint" aria-hidden="true"></span>Blueprint</button>
+  </div>
+</div>
+
 <div class="wrap">
-  <header>
-    <h1>Operations Management</h1>
-    <p class="who">Interactive course resources by Ashir Mansuri.</p>
-    <div class="strip" aria-hidden="true">
-      <svg viewBox="0 0 1000 150" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <pattern id="g1" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#E2ECE8"/></pattern>
-          <pattern id="g2" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M100 0H0V100" fill="none" stroke="#CFDDD8"/></pattern>
-        </defs>
-        <rect width="1000" height="150" fill="#fff"/>
-        <rect width="1000" height="150" fill="url(#g1)"/>
-        <rect width="1000" height="150" fill="url(#g2)"/>
-        <line x1="0" x2="1000" y1="34" y2="34" stroke="#C62828" stroke-width="2" stroke-dasharray="8 6"/>
-        <line x1="0" x2="1000" y1="78" y2="78" stroke="#1B2A4A" stroke-width="1.5"/>
-        <line x1="0" x2="1000" y1="122" y2="122" stroke="#C62828" stroke-width="2" stroke-dasharray="8 6"/>
-        <polyline fill="none" stroke="#1B2A4A" stroke-width="2.2" stroke-linejoin="round"
-          points="20,84 70,64 120,92 170,70 220,98 270,80 320,58 370,88 420,72 470,96 520,66 570,82 620,20 670,76 720,90 770,62 820,86 870,74 920,100 970,70"/>
-        <g fill="#1B2A4A" stroke="#fff" stroke-width="1.2">
-          <circle cx="20" cy="84" r="4.5"/><circle cx="70" cy="64" r="4.5"/><circle cx="120" cy="92" r="4.5"/><circle cx="170" cy="70" r="4.5"/>
-          <circle cx="220" cy="98" r="4.5"/><circle cx="270" cy="80" r="4.5"/><circle cx="320" cy="58" r="4.5"/><circle cx="370" cy="88" r="4.5"/>
-          <circle cx="420" cy="72" r="4.5"/><circle cx="470" cy="96" r="4.5"/><circle cx="520" cy="66" r="4.5"/><circle cx="570" cy="82" r="4.5"/>
-          <circle cx="670" cy="76" r="4.5"/><circle cx="720" cy="90" r="4.5"/><circle cx="770" cy="62" r="4.5"/><circle cx="820" cy="86" r="4.5"/>
-          <circle cx="870" cy="74" r="4.5"/><circle cx="920" cy="100" r="4.5"/><circle cx="970" cy="70" r="4.5"/>
-        </g>
-        <circle cx="620" cy="20" r="7" fill="#C62828" stroke="#fff" stroke-width="1.5"/>
-      </svg>
+  <header class="hero">
+    <div>
+      <h1>Operations Management</h1>
+      <p class="lede">Interactive course resources by Ashir Mansuri.</p>
     </div>
+    <svg class="tower" viewBox="0 0 120 250" aria-hidden="true">
+      <defs>
+        <filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="9"/></filter>
+      </defs>
+      <rect x="34" y="4" width="52" height="12" rx="4" style="fill:var(--console)"/>
+      <rect x="30" y="16" width="60" height="44" rx="6" fill="#E5484D" opacity=".28"/>
+      <rect x="30" y="64" width="60" height="44" rx="6" fill="#F5A524" opacity=".28"/>
+      <rect x="22" y="104" width="76" height="56" rx="20" fill="#30C46F" filter="url(#glow)" opacity=".75"/>
+      <rect x="30" y="112" width="60" height="44" rx="6" fill="#30C46F"/>
+      <rect x="38" y="118" width="10" height="32" rx="5" fill="#fff" opacity=".45"/>
+      <rect x="34" y="160" width="52" height="10" rx="3" style="fill:var(--console)"/>
+      <rect x="54" y="170" width="12" height="62" style="fill:var(--muted)"/>
+      <rect x="30" y="232" width="60" height="12" rx="4" style="fill:var(--console)"/>
+    </svg>
   </header>
 
   <main>
-    <h2>In this course site</h2>
-    <p class="intro">Everything works on a phone or a laptop. Nothing you type into these tools is saved or sent anywhere.</p>
-    <ul class="list">
-      <li class="item">
+    <section class="lab" aria-labelledby="lab-title">
+      <div class="lab-head">
         <div>
-          <h3><a href="quality-tools.html">Quality Tools Lab</a></h3>
+          <h2 id="lab-title">Quality Tools Lab</h2>
           <p>Make control charts, Pareto charts and fishbone diagrams from your own data, with the working shown. Unit 3: Quality Management and Improvement.</p>
-          <p class="jump"><a href="quality-tools.html#control">Control chart</a><a href="quality-tools.html#pareto">Pareto chart</a><a href="quality-tools.html#fishbone">Fishbone diagram</a></p>
         </div>
-        <div class="action"><a class="open" href="quality-tools.html">Open the lab</a></div>
-      </li>
-      <li class="item later">
-        <div>
-          <h3>Unit quizzes</h3>
-          <p>Short self-tests and flashcards for each unit, to check yourself before the exam.</p>
-        </div>
-        <div class="action"><span class="soon">Coming soon</span></div>
-      </li>
-      <li class="item later">
-        <div>
-          <h3>Classroom simulations</h3>
-          <p>The beer game and other supply chain games we play in class, to see the bullwhip effect for yourself.</p>
-        </div>
-        <div class="action"><span class="soon">Coming soon</span></div>
-      </li>
-      <li class="item later">
-        <div>
-          <h3>Syllabus and slides</h3>
-          <p>The unit plan, readings and lecture slides in one place.</p>
-        </div>
-        <div class="action"><span class="soon">Coming soon</span></div>
-      </li>
-    </ul>
+        <a class="btn" href="quality-tools.html">Open the lab</a>
+      </div>
+      <div class="tiles">
+        <a class="tile" href="quality-tools.html#control">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 6h20M2 18h20" stroke-dasharray="2.5 2.5"/><path d="M2 13l4-3 4 4 4-6 4 5 4-2" stroke-linejoin="round"/></svg>
+          <strong>Control chart</strong>
+          <span>See when a process goes out of control.</span>
+        </a>
+        <a class="tile" href="quality-tools.html#pareto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 21V9h4v12M10 21v-7h4v7M17 21v-4h4v4"/><path d="M5 8c4-4 9-5 14-5" stroke-linecap="round"/></svg>
+          <strong>Pareto chart</strong>
+          <span>Find the vital few causes to fix first.</span>
+        </a>
+        <a class="tile" href="quality-tools.html#fishbone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M1 12h16M5 12L2 6M11 12L8 6M5 12l-3 6M11 12l-3 6"/><path d="M17 8h6v8h-6z" stroke-linejoin="round"/></svg>
+          <strong>Fishbone diagram</strong>
+          <span>Map every possible cause of a problem.</span>
+        </a>
+      </div>
+    </section>
+    <p class="note">Everything works on a phone or a laptop. Nothing you type into these tools is saved or sent anywhere.</p>
   </main>
 
   <footer>
     <p>Ashir Mansuri, Operations Management.</p>
   </footer>
 </div>
+
+<script>
+(function(){
+  function sync(){
+    var t = document.documentElement.getAttribute("data-theme") || "daylight";
+    Array.prototype.forEach.call(document.querySelectorAll("[data-theme-choice]"), function(b){
+      b.setAttribute("aria-pressed", b.getAttribute("data-theme-choice") === t ? "true" : "false");
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("[data-theme-choice]"), function(b){
+    b.addEventListener("click", function(){
+      var t = b.getAttribute("data-theme-choice");
+      document.documentElement.setAttribute("data-theme", t);
+      try { localStorage.setItem("ops-theme", t); } catch (e) {}
+      sync();
+    });
+  });
+  sync();
+})();
+</script>
 </body>
 </html>
