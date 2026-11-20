@@ -259,13 +259,12 @@ For a Pareto chart, with causes in A2:A8 and counts in B2:B8 (already sorted lar
 
 ## Using it in class
 
-- Open the lab on the projector and change the example data live.
 - Students can open the same link on their phones.
 - Every chart can be downloaded as a PNG for assignments and slides.
 
 ## Privacy
 
-Everything runs in the browser. Nothing typed into the tools is saved or sent anywhere. Don't upload student marks or personal data to this repository, because it's public.
+Everything runs in the browser. Nothing typed into the tools is saved or sent anywhere. 
 
 ## Updating
 
