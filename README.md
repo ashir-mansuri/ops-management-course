@@ -1,5 +1,7 @@
 # Operations Management course site
 
+Interactive course resources for Operations Management, by Ashir Mansuri.
+
 **Live site:** https://ashir-mansuri.github.io/ops-management-course/
 
 ## What's here
@@ -7,7 +9,7 @@
 | File | What it is |
 |---|---|
 | `index.html` | Course home page with links to everything |
-| `quality-tools.html` | Quality Tools Lab : control charts (X-bar and R, p-chart), Pareto charts and fishbone diagrams. Students type or paste their own data and see the chart, the verdict and the working. |
+| `quality-tools.html` | Quality Tools Lab (Unit 3): control charts (X-bar and R, p-chart), Pareto charts and fishbone diagrams. Students type or paste their own data and see the chart, the verdict and the working. |
 
 Coming soon: unit quizzes, classroom simulations (beer game), syllabus and slides.
 
