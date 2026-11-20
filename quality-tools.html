@@ -1,112 +1,157 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="daylight">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Quality Tools Lab | Operations Management</title>
 <meta name="description" content="Make control charts, Pareto charts and fishbone diagrams from your own data. Unit 3: Quality Management and Improvement.">
+<script>
+(function(){ var t = "daylight"; try { t = localStorage.getItem("ops-theme") || t; } catch (e) {}
+  if (["daylight","night","blueprint"].indexOf(t) < 0) t = "daylight";
+  document.documentElement.setAttribute("data-theme", t); })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --paper:#F3F7F6;
-    --sheet:#FFFFFF;
-    --line:#C9D6D2;
-    --ink:#1B2A4A;
-    --pencil:#56637A;
-    --red:#C62828;
-    --green:#1E7B4F;
-    --soft:#AFC0D3;
-    --focus:#1F5FD1;
+  /* ---------- Themes ---------- */
+  :root,[data-theme="daylight"]{
+    --bg:#E9EDF1; --surface:#FFFFFF; --ink:#16202C; --muted:#586474; --line:#D3DAE1; --soft:#F3F5F8;
+    --console:#1B2530; --console-ink:#EEF2F6; --console-muted:#A9B5C2; --field:#25313E; --field-line:#3D4B5B;
+    --accent:#F2711C; --on-accent:#16202C; --ok:#1C8F4D; --bad:#D93036; --focus:#2563EB;
+    --c-bg:#FFFFFF; --c-grid:#F0F3F6; --c-grid2:#E2E7ED; --c-tick:#E3E8EE; --c-text:#16202C; --c-muted:#586474; --c-axis:#8794A3;
+    --c-line:#1D4ED8; --c-center:#16202C; --c-limit:#D93036; --c-bar:#1D4ED8; --c-bar2:#BAC6D4; --c-cum:#E8650F;
+    --c-bone:#1B2530; --c-box:#1B2530; --c-box-text:#FFFFFF;
+    color-scheme:light;
   }
+  [data-theme="night"]{
+    --bg:#0B0F14; --surface:#131A22; --ink:#E6EBF0; --muted:#9AA8B7; --line:#253140; --soft:#19222C;
+    --console:#1B2430; --console-ink:#E6EBF0; --console-muted:#9AA8B7; --field:#10161D; --field-line:#33414F;
+    --accent:#F5A524; --on-accent:#111418; --ok:#3BCB80; --bad:#F26363; --focus:#7AB8FF;
+    --c-bg:#131A22; --c-grid:#18202A; --c-grid2:#212B37; --c-tick:#222C38; --c-text:#E6EBF0; --c-muted:#A3B0BE; --c-axis:#5E6C7C;
+    --c-line:#F5A524; --c-center:#E6EBF0; --c-limit:#F26363; --c-bar:#F5A524; --c-bar2:#3D4A5A; --c-cum:#6CC6FF;
+    --c-bone:#E6EBF0; --c-box:#F5A524; --c-box-text:#111418;
+    color-scheme:dark;
+  }
+  [data-theme="blueprint"]{
+    --bg:#0A2C66; --surface:#0E3A85; --ink:#FFFFFF; --muted:#C3D3F3; --line:#2D5CAB; --soft:#12408F;
+    --console:#082456; --console-ink:#FFFFFF; --console-muted:#B3C6EE; --field:#0B2F6E; --field-line:#3D6AB8;
+    --accent:#FFD24A; --on-accent:#0A2C66; --ok:#5BE39A; --bad:#FF8484; --focus:#FFD24A;
+    --c-bg:#0E3A85; --c-grid:#154392; --c-grid2:#2251A2; --c-tick:#2A58A8; --c-text:#FFFFFF; --c-muted:#CCDAF6; --c-axis:#8FAEE3;
+    --c-line:#FFFFFF; --c-center:#FFFFFF; --c-limit:#FF8A8A; --c-bar:#FFFFFF; --c-bar2:#6F90CC; --c-cum:#FFD24A;
+    --c-bone:#FFFFFF; --c-box:#FFFFFF; --c-box-text:#0A2C66;
+    color-scheme:dark;
+  }
+
+  /* ---------- Base ---------- */
   *{box-sizing:border-box}
   html{-webkit-text-size-adjust:100%}
   body{
-    margin:0;background:var(--paper);color:var(--ink);
-    font-family:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
     font-size:17px;line-height:1.5;font-variant-numeric:tabular-nums;
   }
-  a{color:var(--ink)}
+  a{color:inherit}
   :focus-visible{outline:3px solid var(--focus);outline-offset:2px}
-  .wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+  .wrap{max-width:1260px;margin:0 auto;padding:0 24px}
+  .cond{font-family:"Barlow Condensed","Barlow",system-ui,sans-serif}
 
-  header{padding:22px 0 18px}
-  .crumb{font-size:.95rem;color:var(--pencil);text-decoration:none}
-  .crumb:hover{text-decoration:underline}
-  h1{
-    font-stretch:125%;font-weight:800;letter-spacing:-.01em;
-    font-size:clamp(2.1rem,5.2vw,3.6rem);line-height:1.02;margin:10px 0 10px;
+  /* ---------- Top bar ---------- */
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-top:16px;padding-bottom:16px}
+  .brand{display:inline-flex;align-items:center;gap:10px;text-decoration:none;font-weight:600;font-size:1rem}
+  .brand:hover span:last-child{text-decoration:underline}
+  .mark{display:inline-flex;flex-direction:column;gap:2px;padding:4px 5px;border-radius:6px;background:var(--console)}
+  .mark i{display:block;width:8px;height:8px;border-radius:50%;background:#6B7684;opacity:.55}
+  .mark i:nth-child(1){background:#E5484D}
+  .mark i:nth-child(2){background:#F5A524}
+  .mark i:nth-child(3){background:#30C46F;opacity:1;box-shadow:0 0 6px #30C46F}
+  .themes{display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:var(--surface);border:1px solid var(--line)}
+  .themes button{
+    appearance:none;border:0;background:transparent;color:var(--muted);font:inherit;font-size:.9rem;font-weight:600;
+    display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;cursor:pointer;
   }
-  .lede{max-width:62ch;margin:0;color:var(--pencil);font-size:1.05rem}
+  .themes button:hover{color:var(--ink)}
+  .themes button[aria-pressed="true"]{background:var(--console);color:var(--console-ink)}
+  .swatch{width:12px;height:12px;border-radius:50%;border:1px solid rgba(127,127,127,.5);flex:none}
+  .swatch.daylight{background:linear-gradient(135deg,#FFFFFF 50%,#1D4ED8 50%)}
+  .swatch.night{background:linear-gradient(135deg,#131A22 50%,#F5A524 50%)}
+  .swatch.blueprint{background:linear-gradient(135deg,#0E3A85 50%,#FFD24A 50%)}
 
-  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:22px;position:relative;z-index:1}
-  .tab{
-    appearance:none;border:1px solid var(--line);border-bottom:none;background:transparent;
-    color:var(--pencil);font:inherit;font-weight:600;font-size:1rem;
-    padding:11px 18px 12px;border-radius:8px 8px 0 0;cursor:pointer;
+  /* ---------- Buttons ---------- */
+  .btn{
+    font:inherit;font-weight:600;font-size:.95rem;cursor:pointer;text-decoration:none;display:inline-block;
+    padding:10px 16px;border-radius:9px;border:0;background:var(--accent);color:var(--on-accent);
   }
-  .tab:hover{color:var(--ink);background:#E8EFED}
-  .tab[aria-selected="true"]{
-    background:var(--sheet);color:var(--ink);border-color:var(--ink);
-    border-width:2px 2px 0;margin-bottom:-2px;padding-bottom:14px;
-  }
+  .btn:hover{filter:brightness(1.08)}
+  .btn.quiet{background:transparent;color:inherit;border:1.5px solid var(--field-line);padding:8.5px 14.5px}
+  .btn.quiet:hover{background:var(--field);filter:none}
 
-  .panel{
-    background:var(--sheet);border:2px solid var(--ink);border-radius:0 8px 8px 8px;
-    padding:26px;display:grid;grid-template-columns:minmax(270px,350px) minmax(0,1fr);gap:30px;
+  /* ---------- Lab header and tool switcher ---------- */
+  .intro{padding:10px 0 18px}
+  h1{font-family:"Barlow Condensed","Barlow",system-ui,sans-serif;font-weight:700;letter-spacing:.005em;
+     font-size:clamp(2.6rem,6vw,4.3rem);line-height:.95;margin:0 0 10px}
+  .lede{max-width:64ch;margin:0;color:var(--muted);font-size:1.06rem}
+
+  .tools{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+  .tools::-webkit-scrollbar{display:none}
+  .tool{
+    appearance:none;flex:none;display:inline-flex;align-items:center;gap:9px;cursor:pointer;
+    font-family:"Barlow Condensed","Barlow",system-ui,sans-serif;font-weight:600;font-size:1.18rem;
+    padding:11px 18px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--muted);
   }
+  .tool svg{width:22px;height:22px;flex:none}
+  .tool:hover{color:var(--ink)}
+  .tool[aria-selected="true"]{background:var(--console);border-color:var(--console);color:var(--console-ink);box-shadow:inset 0 -3px 0 var(--accent)}
+
+  /* ---------- Panels: console (inputs) + screen (output) ---------- */
+  .panel{display:grid;grid-template-columns:minmax(270px,350px) minmax(0,1fr);gap:18px;margin-top:16px}
+  .panel.wide{grid-template-columns:minmax(0,1fr)}
+  @media (min-width:941px){.panel:not(.wide) > .console{align-self:start;position:sticky;top:16px}}
   [hidden]{display:none !important}
 
-  .inputs h2,.output h2,.fb-top h2{font-stretch:112%;font-weight:700;font-size:1.2rem;margin:0 0 4px}
-  label{display:block;font-weight:600;font-size:.95rem;margin:16px 0 6px}
-  .hint{color:var(--pencil);font-size:.88rem;margin:6px 0 0}
-  textarea,input[type=text],input[type=number],select{
-    width:100%;font:inherit;font-size:15px;color:var(--ink);background:#FAFCFB;
-    border:1px solid var(--line);border-radius:6px;padding:9px 11px;
+  .console{background:var(--console);color:var(--console-ink);border-radius:16px;padding:22px;min-width:0}
+  .screen{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:16px;padding:22px;min-width:0}
+  .console h2,.screen h2{font-family:"Barlow Condensed","Barlow",system-ui,sans-serif;font-weight:700;font-size:1.45rem;line-height:1.1;margin:0 0 4px}
+  .console label{display:block;font-weight:600;font-size:.95rem;margin:16px 0 6px}
+  .console .hint{color:var(--console-muted);font-size:.9rem;margin:6px 0 0}
+  .console :focus-visible{outline-color:var(--accent)}
+  .console textarea,.console input[type=text],.console input[type=number],.console select{
+    width:100%;font:inherit;font-size:15.5px;color:var(--console-ink);background:var(--field);
+    border:1px solid var(--field-line);border-radius:9px;padding:9px 11px;
   }
-  textarea{min-height:250px;line-height:1.55;resize:vertical;font-variant-numeric:tabular-nums}
-  .fb-cat textarea{min-height:92px}
-  select{appearance:auto}
+  .console textarea{min-height:250px;line-height:1.55;resize:vertical;font-variant-numeric:tabular-nums}
+  .console select option{background:var(--field);color:var(--console-ink)}
   .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
-  .btn{
-    font:inherit;font-weight:600;font-size:.95rem;cursor:pointer;
-    padding:9px 15px;border-radius:6px;border:2px solid var(--ink);
-    background:var(--ink);color:#fff;
-  }
-  .btn.quiet{background:transparent;color:var(--ink)}
-  .btn:hover{filter:brightness(1.15)}
-  .btn.quiet:hover{background:#EEF3F1;filter:none}
 
   .error{
-    border-left:4px solid var(--red);background:#FCEDED;color:#7F1515;
-    padding:10px 12px;border-radius:0 6px 6px 0;margin-top:14px;font-size:.95rem;
+    border-left:4px solid var(--bad);background:rgba(217,48,54,.16);color:var(--console-ink);
+    padding:10px 12px;border-radius:0 8px 8px 0;margin-top:14px;font-size:.95rem;
   }
   .error:empty{display:none}
 
-  .verdict{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin:6px 0 14px;min-height:56px}
-  .stamp{
-    display:inline-block;transform:rotate(-6deg);
-    border:5px double currentColor;border-radius:5px;padding:4px 14px 5px;
-    font-stretch:125%;font-weight:800;font-size:1.35rem;line-height:1.2;white-space:nowrap;
-    color:var(--green);
-  }
-  .stamp.bad{color:var(--red)}
-  .stamp.thunk{animation:thunk .28s cubic-bezier(.2,1.4,.4,1) both}
-  @keyframes thunk{from{transform:rotate(-6deg) scale(1.7);opacity:0}to{transform:rotate(-6deg) scale(1);opacity:1}}
-  @media (prefers-reduced-motion:reduce){.stamp.thunk{animation:none}}
-  .verdict p{margin:0;flex:1;min-width:220px;font-size:1.02rem}
-  .summary{font-size:1.08rem;margin:4px 0 14px;max-width:70ch}
+  /* ---------- Andon status light ---------- */
+  .status{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:0 0 16px}
+  .andon{display:inline-flex;align-items:center;gap:11px;padding:7px 18px 7px 9px;border-radius:999px;background:var(--soft);border:1px solid var(--line);white-space:nowrap}
+  .lamp{width:22px;height:22px;border-radius:50%;flex:none;
+    background:radial-gradient(circle at 35% 32%,rgba(255,255,255,.9) 0 14%,var(--ok) 46%);
+    box-shadow:0 0 0 3px rgba(48,196,111,.22),0 0 16px var(--ok)}
+  .andon-label{font-family:"Barlow Condensed","Barlow",system-ui,sans-serif;font-weight:700;font-size:1.45rem;line-height:1;color:var(--ok)}
+  .andon.bad .lamp{background:radial-gradient(circle at 35% 32%,rgba(255,255,255,.9) 0 14%,var(--bad) 46%);box-shadow:0 0 0 3px rgba(229,72,77,.22),0 0 16px var(--bad)}
+  .andon.bad .andon-label{color:var(--bad)}
+  .andon.flash .lamp{animation:flash .45s ease-out}
+  @keyframes flash{0%{transform:scale(.55);opacity:.3}60%{transform:scale(1.18);opacity:1}100%{transform:scale(1)}}
+  @media (prefers-reduced-motion:reduce){.andon.flash .lamp{animation:none}}
+  .status p{margin:0;flex:1;min-width:230px;font-size:1.02rem}
+  .summary{font-size:1.1rem;margin:0 0 16px;max-width:72ch}
 
-  .chart{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#fff}
+  .chart{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--c-bg)}
   .chart svg{display:block;width:100%;height:auto}
-  .chart.stale{opacity:.45}
-  .chart-actions{display:flex;justify-content:flex-end;margin-top:10px}
+  .chart.stale{opacity:.4}
+  .chart-actions{display:flex;justify-content:flex-end;margin-top:12px}
 
-  .findings{margin:14px 0 0;padding-left:1.2em}
-  .findings li{margin:4px 0}
-
-  details{margin-top:16px;border:1px solid var(--line);border-radius:6px;padding:0 14px}
+  .findings{margin:16px 0 0;padding-left:1.2em}
+  .findings li{margin:5px 0}
+  details{margin-top:16px;border:1px solid var(--line);border-radius:10px;padding:0 14px}
   summary{cursor:pointer;font-weight:600;padding:11px 0}
   details[open] summary{border-bottom:1px solid var(--line);margin-bottom:10px}
   .calc{margin:0 0 12px;padding:0;list-style:none}
@@ -114,35 +159,34 @@
   .ov{text-decoration:overline}
   .ov2{text-decoration:overline;text-decoration-style:double}
   table{border-collapse:collapse;width:100%;font-size:.95rem;margin:0 0 12px}
-  th,td{text-align:right;padding:6px 8px;border-bottom:1px solid #E3EAE8}
+  th,td{text-align:right;padding:6px 8px;border-bottom:1px solid var(--line)}
   th:first-child,td:first-child{text-align:left}
-  th{font-weight:600;color:var(--pencil)}
+  th{font-weight:600;color:var(--muted)}
   tr.vital td{font-weight:700}
-  .tag{display:inline-block;font-size:.78rem;font-weight:700;color:#fff;background:var(--ink);border-radius:3px;padding:1px 6px;margin-left:6px;vertical-align:1px}
+  .tag{display:inline-block;font-size:.78rem;font-weight:700;color:var(--on-accent);background:var(--accent);border-radius:4px;padding:1px 7px;margin-left:7px;vertical-align:1px}
 
-  .notes{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:22px}
-  .notes h3{font-stretch:112%;font-size:1.02rem;margin:0 0 6px}
-  .notes p,.notes ul{margin:0 0 8px;font-size:.97rem}
+  .notes{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}
+  .notes h3{font-family:"Barlow Condensed","Barlow",system-ui,sans-serif;font-weight:700;font-size:1.2rem;margin:0 0 6px}
+  .notes p,.notes ul{margin:0 0 8px;font-size:.98rem}
   .notes ul{padding-left:1.15em}
-  .class-idea{border-left:3px solid var(--ink);padding-left:16px}
+  .class-idea{border-left:3px solid var(--accent);padding-left:16px}
 
-  .panel.wide{display:block}
-  .fb-top{display:grid;grid-template-columns:minmax(0,2fr) minmax(200px,1fr) auto;gap:16px;align-items:end;margin-bottom:18px}
+  /* ---------- Fishbone layout ---------- */
+  .fb-top{display:grid;grid-template-columns:minmax(0,2fr) minmax(200px,1fr) auto;gap:16px;align-items:end}
   .fb-top label{margin-top:0}
   .fb-top .row{margin-top:0}
-  .fb-heading{font-stretch:112%;font-weight:700;font-size:1.2rem;margin:26px 0 0}
-  .fb-cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 22px}
-  .fb-cat{border-top:1px solid #E3EAE8;padding-top:2px;margin-top:10px}
+  .fb-cats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 22px;margin-top:4px}
+  .fb-cat{border-top:1px solid var(--field-line);padding-top:2px;margin-top:12px}
   .fb-cat input{font-weight:600}
+  .console .fb-cat textarea{min-height:96px}
 
-  footer{color:var(--pencil);font-size:.9rem;padding:26px 0 40px}
+  footer{color:var(--muted);font-size:.92rem;padding:28px 0 44px}
   footer p{margin:4px 0}
 
-  @media (max-width:920px){
-    .panel{grid-template-columns:minmax(0,1fr);padding:18px}
-    .inputs,.output{min-width:0}
+  @media (max-width:940px){
+    .panel{grid-template-columns:minmax(0,1fr)}
     .notes{grid-template-columns:1fr}
-    textarea{min-height:180px}
+    .console textarea{min-height:180px}
     .fb-top{grid-template-columns:1fr}
     .fb-cats{grid-template-columns:1fr 1fr}
   }
@@ -150,39 +194,54 @@
     .chart{overflow-x:auto}
     .chart svg{min-width:640px}
     .chart.scroll svg{min-width:820px}
-    .chart::after{content:"Scroll sideways to see the whole chart.";display:block;font-size:.82rem;color:var(--pencil);padding:6px 10px;position:sticky;left:0}
+    .chart::after{content:"Scroll sideways to see the whole chart.";display:block;font-size:.82rem;color:var(--muted);padding:6px 10px;position:sticky;left:0;background:var(--surface)}
     .fb-cats{grid-template-columns:1fr}
   }
   @media (max-width:520px){
     .wrap{padding:0 14px}
-    .tab{padding:9px 11px 10px;font-size:.92rem}
-    .tab[aria-selected="true"]{padding-bottom:12px}
-    .tab .long{display:none}
-    .stamp{font-size:1.1rem}
+    .console,.screen{padding:16px;border-radius:14px}
+    .tool{font-size:1.05rem;padding:9px 13px}
+    .themes button{padding:6px 9px;font-size:.85rem}
+    .andon-label{font-size:1.2rem}
   }
   @media print{
-    .tabs,.inputs,.chart-actions,.notes,header .crumb,.fb-top,.fb-cats,.fb-heading,.hint{display:none}
-    .panel{border:none;display:block;padding:0}
-    body{background:#fff}
+    .topbar,.tools,.console,.chart-actions,.notes,.intro .lede{display:none}
+    .panel{display:block}
+    .screen{border:none;padding:0}
   }
 </style>
 </head>
 <body>
+<div class="wrap topbar">
+  <a class="brand" href="index.html"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span><span>Operations Management</span></a>
+  <div class="themes" role="group" aria-label="Colour theme">
+    <button type="button" data-theme-choice="daylight" aria-pressed="true"><span class="swatch daylight" aria-hidden="true"></span>Daylight</button>
+    <button type="button" data-theme-choice="night" aria-pressed="false"><span class="swatch night" aria-hidden="true"></span>Night shift</button>
+    <button type="button" data-theme-choice="blueprint" aria-pressed="false"><span class="swatch blueprint" aria-hidden="true"></span>Blueprint</button>
+  </div>
+</div>
+
 <div class="wrap">
-  <header>
-    <a class="crumb" href="index.html">Operations Management course home</a>
+  <header class="intro">
     <h1>Quality Tools Lab</h1>
     <p class="lede">Unit 3: Quality Management and Improvement. Type or paste your own data, including straight from Excel, and the chart redraws as you go.</p>
-    <div class="tabs" role="tablist" aria-label="Quality tools">
-      <button class="tab" role="tab" id="tab-control" aria-controls="panel-control" aria-selected="true" data-tab="control">Control chart</button>
-      <button class="tab" role="tab" id="tab-pareto" aria-controls="panel-pareto" aria-selected="false" tabindex="-1" data-tab="pareto">Pareto chart</button>
-      <button class="tab" role="tab" id="tab-fishbone" aria-controls="panel-fishbone" aria-selected="false" tabindex="-1" data-tab="fishbone">Fishbone<span class="long"> diagram</span></button>
-    </div>
   </header>
+
+  <div class="tools" role="tablist" aria-label="Quality tools">
+    <button class="tool" role="tab" id="tab-control" aria-controls="panel-control" aria-selected="true" data-tab="control">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 6h20M2 18h20" stroke-dasharray="2.5 2.5"/><path d="M2 13l4-3 4 4 4-6 4 5 4-2" stroke-linejoin="round"/></svg>
+      Control chart</button>
+    <button class="tool" role="tab" id="tab-pareto" aria-controls="panel-pareto" aria-selected="false" tabindex="-1" data-tab="pareto">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 21V9h4v12M10 21v-7h4v7M17 21v-4h4v4"/><path d="M5 8c4-4 9-5 14-5" stroke-linecap="round"/></svg>
+      Pareto chart</button>
+    <button class="tool" role="tab" id="tab-fishbone" aria-controls="panel-fishbone" aria-selected="false" tabindex="-1" data-tab="fishbone">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M1 12h16M5 12L2 6M11 12L8 6M5 12l-3 6M11 12l-3 6"/><path d="M17 8h6v8h-6z" stroke-linejoin="round"/></svg>
+      Fishbone diagram</button>
+  </div>
 
   <!-- CONTROL CHART -->
   <section class="panel" id="panel-control" role="tabpanel" aria-labelledby="tab-control">
-    <div class="inputs">
+    <div class="console inputs">
       <h2>Your data</h2>
       <label for="cc-type">Chart type</label>
       <select id="cc-type">
@@ -211,9 +270,9 @@
       <div class="error" id="cc-error" role="alert"></div>
     </div>
 
-    <div class="output">
-      <div class="verdict" aria-live="polite">
-        <span class="stamp" id="cc-stamp">In control</span>
+    <div class="screen output">
+      <div class="status" aria-live="polite">
+        <span class="andon" id="cc-stamp"><span class="lamp" aria-hidden="true"></span><span class="andon-label" id="cc-stamp-label">In control</span></span>
         <p id="cc-verdict-text"></p>
       </div>
       <div class="chart" id="cc-chart"></div>
@@ -246,7 +305,7 @@
 
   <!-- PARETO -->
   <section class="panel" id="panel-pareto" role="tabpanel" aria-labelledby="tab-pareto" hidden>
-    <div class="inputs">
+    <div class="console inputs">
       <h2>Your data</h2>
       <label for="pa-title">What are you counting?</label>
       <input id="pa-title" type="text">
@@ -260,7 +319,7 @@
       <div class="error" id="pa-error" role="alert"></div>
     </div>
 
-    <div class="output">
+    <div class="screen output">
       <p class="summary" id="pa-summary" aria-live="polite"></p>
       <div class="chart" id="pa-chart"></div>
       <div class="chart-actions"><button class="btn" type="button" id="pa-download">Download chart as PNG</button></div>
@@ -271,7 +330,7 @@
       <div class="notes">
         <div>
           <h3>How to read this</h3>
-          <p>Bars show how often each cause happens, largest first. The red line is the running total as a percentage of everything counted.</p>
+          <p>Bars show how often each cause happens, largest first. The line is the running total as a percentage of everything counted.</p>
           <p>The causes up to where the line passes 80% are the vital few. Juran's point: fixing these few gives most of the improvement, so start there instead of spreading effort across the trivial many.</p>
         </div>
         <div class="class-idea">
@@ -287,44 +346,50 @@
 
   <!-- FISHBONE -->
   <section class="panel wide" id="panel-fishbone" role="tabpanel" aria-labelledby="tab-fishbone" hidden>
-    <div class="fb-top">
-      <div class="fb-problem">
+    <div class="console fb-top">
+      <div>
         <label for="fb-problem">Problem (the effect)</label>
         <input id="fb-problem" type="text">
       </div>
-      <div class="fb-template">
+      <div>
         <label for="fb-template">Cause categories</label>
         <select id="fb-template">
           <option value="service">Restaurant or service</option>
           <option value="mfg">Manufacturing (6M)</option>
         </select>
       </div>
-      <div class="row fb-buttons">
+      <div class="row">
         <button class="btn quiet" type="button" id="fb-example">Load example</button>
         <button class="btn quiet" type="button" id="fb-clear">Clear</button>
       </div>
     </div>
 
-    <p class="summary" id="fb-summary" aria-live="polite"></p>
-    <div class="chart scroll" id="fb-chart"></div>
-    <div class="chart-actions"><button class="btn" type="button" id="fb-download">Download diagram as PNG</button></div>
+    <div class="screen">
+      <p class="summary" id="fb-summary" aria-live="polite"></p>
+      <div class="chart scroll" id="fb-chart"></div>
+      <div class="chart-actions"><button class="btn" type="button" id="fb-download">Download diagram as PNG</button></div>
+    </div>
 
-    <h2 class="fb-heading">Causes for each bone</h2>
-    <p class="hint">One cause per line. Start a line with * to mark a likely root cause; it turns red. The boxes are laid out like the diagram: top bones first, then bottom bones.</p>
-    <div class="fb-cats" id="fb-cats"></div>
+    <div class="console">
+      <h2>Causes for each bone</h2>
+      <p class="hint">One cause per line. Start a line with * to mark a likely root cause; it turns red. The boxes are laid out like the diagram: top bones first, then bottom bones.</p>
+      <div class="fb-cats" id="fb-cats"></div>
+    </div>
 
-    <div class="notes">
-      <div>
-        <h3>How to read this</h3>
-        <p>The head of the fish is the problem. Each bone is a group of possible causes. For every cause, keep asking "why?" until you reach something the team can act on.</p>
-        <p>This is the Plan step of PDCA: understand the causes before choosing a fix.</p>
-      </div>
-      <div class="class-idea">
-        <h3>Try this in class</h3>
-        <ul>
-          <li>Split the class into six groups, one per bone. Give each group five minutes, then fill in the diagram together.</li>
-          <li>Ask each group to mark one root cause with * and defend it.</li>
-        </ul>
+    <div class="screen">
+      <div class="notes" style="margin-top:0">
+        <div>
+          <h3>How to read this</h3>
+          <p>The head of the fish is the problem. Each bone is a group of possible causes. For every cause, keep asking "why?" until you reach something the team can act on.</p>
+          <p>This is the Plan step of PDCA: understand the causes before choosing a fix.</p>
+        </div>
+        <div class="class-idea">
+          <h3>Try this in class</h3>
+          <ul>
+            <li>Split the class into six groups, one per bone. Give each group five minutes, then fill in the diagram together.</li>
+            <li>Ask each group to mark one root cause with * and defend it.</li>
+          </ul>
+        </div>
       </div>
     </div>
   </section>
@@ -339,7 +404,17 @@
 (function(){
 "use strict";
 var NS = "http://www.w3.org/2000/svg";
-var C = {ink:"#1B2A4A", pencil:"#56637A", red:"#C62828", green:"#1E7B4F", soft:"#AFC0D3", grid:"#E2ECE8", gridBig:"#CFDDD8"};
+var C = {};
+function readPalette(){
+  var cs = getComputedStyle(document.documentElement);
+  function v(n, d){ var x = cs.getPropertyValue(n).trim(); return x || d; }
+  C = {bg:v("--c-bg","#ffffff"), grid:v("--c-grid","#F0F3F6"), grid2:v("--c-grid2","#E2E7ED"), tick:v("--c-tick","#E3E8EE"),
+       text:v("--c-text","#16202C"), muted:v("--c-muted","#586474"), axis:v("--c-axis","#8794A3"),
+       line:v("--c-line","#1D4ED8"), center:v("--c-center","#16202C"), limit:v("--c-limit","#D93036"),
+       bar:v("--c-bar","#1D4ED8"), bar2:v("--c-bar2","#BAC6D4"), cum:v("--c-cum","#E8650F"),
+       bone:v("--c-bone","#1B2530"), box:v("--c-box","#1B2530"), boxText:v("--c-box-text","#ffffff")};
+}
+readPalette();
 function $(id){ return document.getElementById(id); }
 function el(tag, attrs, parent){
   var e = document.createElementNS(NS, tag);
@@ -356,28 +431,30 @@ function debounce(fn, ms){ var t; return function(){ clearTimeout(t); t = setTim
 function round(v, d){ var p = Math.pow(10, d); return Math.round(v * p) / p; }
 function fmt(v, d){ return round(v, d).toFixed(d); }
 
-var SVG_STYLE =
-  "text{font-family:Archivo,Arial,Helvetica,sans-serif;fill:" + C.ink + "}" +
-  ".t{font-size:17px;font-weight:700}" +
-  ".ax{font-size:13.5px;fill:" + C.pencil + "}" +
-  ".lim{font-size:13.5px;font-weight:700;fill:" + C.red + "}" +
-  ".cl{font-size:13.5px;font-weight:700}" +
-  ".small{font-size:13.5px}" +
-  ".cat{font-size:15.5px;font-weight:700;fill:#fff}" + ".cause{font-size:15px}" +
-  ".head{font-size:17px;font-weight:700;fill:#fff}" +
-  ".root{fill:" + C.red + ";font-weight:700}";
+function svgStyle(){
+  return "text{font-family:Barlow,Arial,Helvetica,sans-serif;fill:" + C.text + "}" +
+  ".t{font-size:18px;font-weight:700}" +
+  ".ax{font-size:14px;fill:" + C.muted + "}" +
+  ".lim{font-size:14px;font-weight:700;fill:" + C.limit + "}" +
+  ".cl{font-size:14px;font-weight:700;fill:" + C.center + "}" +
+  ".small{font-size:14px}" +
+  ".cat{font-size:16px;font-weight:700;fill:" + C.boxText + "}" +
+  ".cause{font-size:15.5px}" +
+  ".head{font-size:17.5px;font-weight:700;fill:" + C.boxText + "}" +
+  ".root{fill:" + C.limit + ";font-weight:700}";
+}
 
 function newSvg(container, w, h, label){
   container.innerHTML = "";
   var svg = el("svg", {viewBox:"0 0 " + w + " " + h, role:"img", "aria-label":label, xmlns:NS}, container);
-  var st = el("style", null, svg); st.textContent = SVG_STYLE;
+  var st = el("style", null, svg); st.textContent = svgStyle();
   var defs = el("defs", null, svg);
   var id = container.id;
   var p1 = el("pattern", {id:id + "-g1", width:20, height:20, patternUnits:"userSpaceOnUse"}, defs);
   el("path", {d:"M20 0H0V20", fill:"none", stroke:C.grid, "stroke-width":1}, p1);
   var p2 = el("pattern", {id:id + "-g2", width:100, height:100, patternUnits:"userSpaceOnUse"}, defs);
-  el("path", {d:"M100 0H0V100", fill:"none", stroke:C.gridBig, "stroke-width":1}, p2);
-  el("rect", {width:w, height:h, fill:"#fff"}, svg);
+  el("path", {d:"M100 0H0V100", fill:"none", stroke:C.grid2, "stroke-width":1}, p2);
+  el("rect", {width:w, height:h, fill:C.bg}, svg);
   el("rect", {width:w, height:h, fill:"url(#" + id + "-g1)"}, svg);
   el("rect", {width:w, height:h, fill:"url(#" + id + "-g2)"}, svg);
   return svg;
@@ -442,7 +519,7 @@ function downloadSvg(container, filename){
 }
 
 /* ---------------- Tabs ---------------- */
-var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
+var tabs = Array.prototype.slice.call(document.querySelectorAll(".tool"));
 function showTab(name, focus){
   tabs.forEach(function(t){
     var on = t.dataset.tab === name;
@@ -529,11 +606,11 @@ function drawPanel(g, o){
   txt(g, o.x + m.l, o.y + 20, o.title, {"class":"t"});
   ticks.forEach(function(t){
     if (t < lo || t > hi) return;
-    el("line", {x1:o.x + m.l, x2:o.x + m.l + pw, y1:Y(t), y2:Y(t), stroke:"#DDE6E3", "stroke-width":1}, g);
+    el("line", {x1:o.x + m.l, x2:o.x + m.l + pw, y1:Y(t), y2:Y(t), stroke:C.tick, "stroke-width":1}, g);
     txt(g, o.x + m.l - 8, Y(t) + 4, o.tick ? o.tick(t, dec) : t.toFixed(dec), {"class":"ax", "text-anchor":"end"});
   });
-  el("line", {x1:o.x + m.l, x2:o.x + m.l, y1:o.y + m.t, y2:o.y + m.t + ph, stroke:C.pencil, "stroke-width":1}, g);
-  el("line", {x1:o.x + m.l, x2:o.x + m.l + pw, y1:o.y + m.t + ph, y2:o.y + m.t + ph, stroke:C.pencil, "stroke-width":1}, g);
+  el("line", {x1:o.x + m.l, x2:o.x + m.l, y1:o.y + m.t, y2:o.y + m.t + ph, stroke:C.axis, "stroke-width":1}, g);
+  el("line", {x1:o.x + m.l, x2:o.x + m.l + pw, y1:o.y + m.t + ph, y2:o.y + m.t + ph, stroke:C.axis, "stroke-width":1}, g);
 
   // limit lines and labels (labels nudged apart if they would overlap)
   var lines = [["UCL", o.ucl, "lim"], ["CL", o.cl, "cl"], ["LCL", o.lcl, "lim"]];
@@ -543,7 +620,7 @@ function drawPanel(g, o){
   lines.forEach(function(l, i){
     var isLim = l[2] === "lim";
     el("line", {x1:o.x + m.l, x2:o.x + m.l + pw, y1:Y(l[1]), y2:Y(l[1]),
-      stroke:isLim ? C.red : C.ink, "stroke-width":isLim ? 2 : 1.5, "stroke-dasharray":isLim ? "7 5" : "none"}, g);
+      stroke:isLim ? C.limit : C.center, "stroke-width":isLim ? 2 : 1.5, "stroke-dasharray":isLim ? "7 5" : "none"}, g);
     txt(g, o.x + m.l + pw + 8, ys[i], l[0] + " " + o.fmt(l[1]), {"class":l[2]});
   });
 
@@ -554,20 +631,20 @@ function drawPanel(g, o){
   txt(g, o.x + m.l + pw / 2, o.y + m.t + ph + 38, "Sample number", {"class":"ax", "text-anchor":"middle"});
 
   el("polyline", {points:o.values.map(function(v, i){ return X(i) + "," + Y(v); }).join(" "),
-    fill:"none", stroke:C.ink, "stroke-width":1.8, "stroke-linejoin":"round"}, g);
+    fill:"none", stroke:C.line, "stroke-width":2, "stroke-linejoin":"round"}, g);
   o.values.forEach(function(v, i){
     var f = o.flags[i];
-    if (f === "run") el("circle", {cx:X(i), cy:Y(v), r:8.5, fill:"none", stroke:C.red, "stroke-width":2}, g);
-    var c = el("circle", {cx:X(i), cy:Y(v), r:f === "out" ? 6.5 : 4.2, fill:f === "out" ? C.red : C.ink, stroke:"#fff", "stroke-width":1.2}, g);
+    if (f === "run") el("circle", {cx:X(i), cy:Y(v), r:8.5, fill:"none", stroke:C.limit, "stroke-width":2}, g);
+    var c = el("circle", {cx:X(i), cy:Y(v), r:f === "out" ? 6.5 : 4.2, fill:f === "out" ? C.limit : C.line, stroke:C.bg, "stroke-width":1.2}, g);
     var tt = el("title", null, c); tt.textContent = "Sample " + (i + 1) + ": " + o.fmt(v);
   });
 }
 
 function setStamp(ok){
   var s = $("cc-stamp");
-  s.textContent = ok ? "In control" : "Out of control";
-  s.className = "stamp" + (ok ? "" : " bad");
-  void s.offsetWidth; s.className += " thunk";
+  $("cc-stamp-label").textContent = ok ? "In control" : "Out of control";
+  s.className = "andon" + (ok ? "" : " bad");
+  void s.offsetWidth; s.className += " flash";
 }
 
 function joinNums(arr){
@@ -780,19 +857,19 @@ function drawPareto(){
 
   var isInt = items.every(function(it){ return Math.floor(it.count) === it.count; });
   [0, 0.2, 0.4, 0.6, 0.8, 1].forEach(function(p){
-    el("line", {x1:m.l, x2:m.l + pw, y1:Yp(p), y2:Yp(p), stroke:"#DDE6E3", "stroke-width":1}, g);
+    el("line", {x1:m.l, x2:m.l + pw, y1:Yp(p), y2:Yp(p), stroke:C.tick, "stroke-width":1}, g);
     var c = total * p;
     txt(g, m.l - 8, Yp(p) + 4, isInt ? String(Math.round(c)) : fmt(c, 1), {"class":"ax", "text-anchor":"end"});
     txt(g, m.l + pw + 8, Yp(p) + 4, Math.round(p * 100) + "%", {"class":"ax"});
   });
-  el("line", {x1:m.l, x2:m.l, y1:m.t, y2:m.t + ph, stroke:C.pencil}, g);
-  el("line", {x1:m.l + pw, x2:m.l + pw, y1:m.t, y2:m.t + ph, stroke:C.pencil}, g);
-  el("line", {x1:m.l, x2:m.l + pw, y1:m.t + ph, y2:m.t + ph, stroke:C.pencil}, g);
+  el("line", {x1:m.l, x2:m.l, y1:m.t, y2:m.t + ph, stroke:C.axis}, g);
+  el("line", {x1:m.l + pw, x2:m.l + pw, y1:m.t, y2:m.t + ph, stroke:C.axis}, g);
+  el("line", {x1:m.l, x2:m.l + pw, y1:m.t + ph, y2:m.t + ph, stroke:C.axis}, g);
 
   var maxChars = Math.max(5, Math.floor(bw / 7.8));
   items.forEach(function(it, i){
     var x = m.l + i * bw + bw * 0.14, w = bw * 0.72, y = Yc(it.count);
-    var r = el("rect", {x:x, y:y, width:w, height:m.t + ph - y, fill:it.vital ? C.ink : C.soft}, g);
+    var r = el("rect", {x:x, y:y, width:w, height:m.t + ph - y, fill:it.vital ? C.bar : C.bar2}, g);
     el("title", null, r).textContent = it.name + ": " + it.count;
     txt(g, x + w / 2, y - 6, isInt ? String(it.count) : fmt(it.count, 1), {"class":"small", "text-anchor":"middle"});
     wrap(it.name, maxChars, 3).forEach(function(line, li){
@@ -800,19 +877,19 @@ function drawPareto(){
     });
   });
 
-  el("line", {x1:m.l, x2:m.l + pw, y1:Yp(0.8), y2:Yp(0.8), stroke:C.red, "stroke-width":1.5, "stroke-dasharray":"6 5"}, g);
+  el("line", {x1:m.l, x2:m.l + pw, y1:Yp(0.8), y2:Yp(0.8), stroke:C.limit, "stroke-width":1.5, "stroke-dasharray":"6 5"}, g);
   txt(g, m.l + pw - 4, Yp(0.8) - 6, "80%", {"class":"lim", "text-anchor":"end"});
   var pts = items.map(function(it, i){ return (m.l + i * bw + bw / 2) + "," + Yp(it.cum); });
-  el("polyline", {points:pts.join(" "), fill:"none", stroke:C.red, "stroke-width":2.2, "stroke-linejoin":"round"}, g);
+  el("polyline", {points:pts.join(" "), fill:"none", stroke:C.cum, "stroke-width":2.4, "stroke-linejoin":"round"}, g);
   items.forEach(function(it, i){
-    var c = el("circle", {cx:m.l + i * bw + bw / 2, cy:Yp(it.cum), r:4.5, fill:"#fff", stroke:C.red, "stroke-width":2}, g);
+    var c = el("circle", {cx:m.l + i * bw + bw / 2, cy:Yp(it.cum), r:4.5, fill:C.bg, stroke:C.cum, "stroke-width":2}, g);
     el("title", null, c).textContent = "Running total: " + fmt(it.cum * 100, 1) + "%";
   });
   // legend
   var lx = m.l + 8, ly = H - 16;
-  el("rect", {x:lx, y:ly - 10, width:12, height:12, fill:C.ink}, g); txt(g, lx + 18, ly, "Vital few", {"class":"small"});
-  el("rect", {x:lx + 100, y:ly - 10, width:12, height:12, fill:C.soft}, g); txt(g, lx + 118, ly, "Trivial many", {"class":"small"});
-  el("line", {x1:lx + 225, x2:lx + 250, y1:ly - 4, y2:ly - 4, stroke:C.red, "stroke-width":2.2}, g); txt(g, lx + 256, ly, "Running total (%)", {"class":"small"});
+  el("rect", {x:lx, y:ly - 10, width:12, height:12, fill:C.bar}, g); txt(g, lx + 18, ly, "Vital few", {"class":"small"});
+  el("rect", {x:lx + 100, y:ly - 10, width:12, height:12, fill:C.bar2}, g); txt(g, lx + 118, ly, "Trivial many", {"class":"small"});
+  el("line", {x1:lx + 225, x2:lx + 250, y1:ly - 4, y2:ly - 4, stroke:C.cum, "stroke-width":2.4}, g); txt(g, lx + 256, ly, "Running total (%)", {"class":"small"});
 
   var vitalPct = items[vitalCount - 1].cum * 100;
   var names = items.slice(0, vitalCount).map(function(it){ return it.name.toLowerCase(); });
@@ -881,10 +958,10 @@ function drawFishbone(){
   var g = el("g", null, svg);
 
   // spine and head
-  el("line", {x1:spineX0, x2:spineX1, y1:spineY, y2:spineY, stroke:C.ink, "stroke-width":4}, g);
-  el("path", {d:"M" + (spineX1 - 2) + " " + (spineY - 12) + " L" + (spineX1 + 16) + " " + spineY + " L" + (spineX1 - 2) + " " + (spineY + 12) + " Z", fill:C.ink}, g);
+  el("line", {x1:spineX0, x2:spineX1, y1:spineY, y2:spineY, stroke:C.bone, "stroke-width":4}, g);
+  el("path", {d:"M" + (spineX1 - 2) + " " + (spineY - 12) + " L" + (spineX1 + 16) + " " + spineY + " L" + (spineX1 - 2) + " " + (spineY + 12) + " Z", fill:C.bone}, g);
   var headLines = wrap(problem, 17, 6), hh = Math.max(120, headLines.length * 23 + 32);
-  el("rect", {x:832, y:spineY - hh / 2, width:196, height:hh, rx:8, fill:C.ink}, g);
+  el("rect", {x:832, y:spineY - hh / 2, width:196, height:hh, rx:8, fill:C.box}, g);
   headLines.forEach(function(l, li){
     txt(g, 930, spineY - (headLines.length - 1) * 23 / 2 + li * 23 + 6, l, {"class":"head", "text-anchor":"middle"});
   });
@@ -893,10 +970,10 @@ function drawFishbone(){
   cats.forEach(function(cat, idx){
     var top = idx < 3, ax = attachX[idx % 3], sign = top ? -1 : 1;
     var ex = ax + dx, ey = spineY + sign * dy;
-    el("line", {x1:ax, y1:spineY, x2:ex, y2:ey, stroke:C.ink, "stroke-width":2.5}, g);
+    el("line", {x1:ax, y1:spineY, x2:ex, y2:ey, stroke:C.bone, "stroke-width":2.5}, g);
     // category label box at the end of the bone
     var bw = Math.max(104, cat.name.length * 9.6 + 28), by = top ? ey - 38 : ey + 4;
-    el("rect", {x:ex - bw / 2, y:by, width:bw, height:34, rx:5, fill:C.ink}, g);
+    el("rect", {x:ex - bw / 2, y:by, width:bw, height:34, rx:5, fill:C.box}, g);
     txt(g, ex, by + 23, cat.name, {"class":"cat", "text-anchor":"middle"});
 
     var nC = cat.causes.length;
@@ -908,8 +985,8 @@ function drawFishbone(){
       // Text sits on the side of the cause line away from the bone, so it never crosses it:
       // below the line on top bones, above the line on bottom bones.
       var lines = wrap(label, 22, 2);
-      el("line", {x1:px - 172, y1:py, x2:px, y2:py, stroke:isRoot ? C.red : C.pencil, "stroke-width":isRoot ? 2.2 : 1.4}, g);
-      el("circle", {cx:px, cy:py, r:3, fill:isRoot ? C.red : C.ink}, g);
+      el("line", {x1:px - 172, y1:py, x2:px, y2:py, stroke:isRoot ? C.limit : C.muted, "stroke-width":isRoot ? 2.2 : 1.4}, g);
+      el("circle", {cx:px, cy:py, r:3, fill:isRoot ? C.limit : C.bone}, g);
       lines.forEach(function(l, li){
         var y = top ? py + 17 + li * 16 : py - 7 - (lines.length - 1 - li) * 16;
         txt(g, px - 8, y, l, {"class":"cause" + (isRoot ? " root" : ""), "text-anchor":"end"});
@@ -940,6 +1017,24 @@ $("fb-clear").addEventListener("click", function(){
   drawFishbone(); $("fb-problem").focus();
 });
 $("fb-download").addEventListener("click", function(){ downloadSvg($("fb-chart"), "fishbone-diagram.png"); });
+
+/* ---------------- Theme ---------------- */
+function applyThemeButtons(){
+  var t = document.documentElement.getAttribute("data-theme") || "daylight";
+  Array.prototype.forEach.call(document.querySelectorAll("[data-theme-choice]"), function(b){
+    b.setAttribute("aria-pressed", b.getAttribute("data-theme-choice") === t ? "true" : "false");
+  });
+}
+Array.prototype.forEach.call(document.querySelectorAll("[data-theme-choice]"), function(b){
+  b.addEventListener("click", function(){
+    var t = b.getAttribute("data-theme-choice");
+    document.documentElement.setAttribute("data-theme", t);
+    try { localStorage.setItem("ops-theme", t); } catch (e) {}
+    applyThemeButtons(); readPalette();
+    drawControl(); drawPareto(); drawFishbone();
+  });
+});
+applyThemeButtons();
 
 /* ---------------- Start ---------------- */
 $("cc-xr-data").value = XR_EXAMPLE;
